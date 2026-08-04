@@ -30,7 +30,7 @@ Technical parameters come from the live **drynet3** dry-run network and the `dry
 5. [Sidechains & L2s](05-sidechains-and-l2s.md) (includes proposing new L2s)
 6. [Contacts & Resources](06-contacts-and-resources.md)
 7. [FAQ](07-faq.md)
-8. [Mining Pool Setup](08-mining-pool-setup.md)
+8. [Mining / Mining Pool](08-mining.md)
 9. [Drynet Dry-Run Networks](09-drynets/README.md) (official per-network docs: drynet1/2/3, connect and mine walkthroughs, what changed between runs)
 
 ## Integration checklist
