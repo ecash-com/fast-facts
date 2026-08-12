@@ -42,12 +42,12 @@ As of 2026-07-27, no eCash/LayerTwo Labs PGP release-signing key has been publis
 
 | Repo | What it is |
 |---|---|
-| https://github.com/ecash-com/bitcoin | eCash L1 full node (Bitcoin Core fork). Branches: `drynet1`/`drynet2`/`drynet3` (dry-run networks), `master` (tracks upstream) |
+| https://github.com/ecash-com/bitcoin | eCash L1 full node (Bitcoin Core fork). Branches: `drynet1` to `drynet4` (dry-run networks), `drynet4-bridge` (BTC-to-ECX relay), `master` (tracks upstream) |
 | https://github.com/LayerTwo-Labs | Main org: enforcer, sidechains, frontends |
 | https://github.com/LayerTwo-Labs/bip300301_enforcer | BIP300/301 validator/wallet daemon (gRPC) |
 | https://github.com/LayerTwo-Labs/drivechain-frontends | BitWindow (GUI wallet / activation client) |
 | https://github.com/ecash-com/ecash-wallet-mobile | Official mobile wallet (iOS TestFlight: https://testflight.apple.com/join/KfTBarUr) |
-| https://github.com/LayerTwo-Labs/simplepool | Stratum mining pool implementation (see [08-mining-pool-setup.md](08-mining-pool-setup.md)) |
+| https://github.com/LayerTwo-Labs/simplepool | Stratum mining pool implementation (see [08-mining.md](08-mining.md)) |
 
 Sidechain repos are listed in [05-sidechains-and-l2s.md](05-sidechains-and-l2s.md).
 
@@ -60,9 +60,9 @@ Sidechain repos are listed in [05-sidechains-and-l2s.md](05-sidechains-and-l2s.m
 | Version manifest | https://releases.drivechain.info/versions.json |
 | Download page | https://layertwolabs.com/download |
 | BitWindow one-line installer | `curl -fsSL https://raw.githubusercontent.com/LayerTwo-Labs/drivechain-frontends/refs/heads/master/install/install-bitwindow.sh \| bash` |
-| Docker (L1 node, drynet3) | `ghcr.io/ecash-com/bitcoin:drynet3` |
+| Docker (L1 node, drynet4) | `ghcr.io/ecash-com/bitcoin:drynet4` |
 
-Dry-run L1 binaries follow the pattern `L1-ecash-bitcoin-drynet3-<target>.zip` (macOS Apple Silicon and Intel, Linux x86_64, Windows x86_64).
+Dry-run L1 binaries follow the pattern `L1-ecash-bitcoin-drynet4-<target>.zip` (macOS Apple Silicon and Intel, Linux x86_64, Windows x86_64).
 
 ## Community channels
 

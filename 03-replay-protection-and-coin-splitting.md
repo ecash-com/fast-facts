@@ -35,8 +35,8 @@ For end users, BitWindow performs the split as an automatic one-time step after 
 
 - A customer's ECX deposit may be a replay of their BTC transaction (or vice versa). Crediting is fine, but credit each chain only from that chain's own node and index; never infer a deposit on one chain from a transaction seen on the other.
 - The "same" transaction can confirm at different times, or on only one chain, ever. Treat the ledgers as fully independent from the first post-fork block.
-- **Repurposed (Patoshi) coins:** 122 hard-coded transactions spend Satoshi-era coins without signatures (whitelisted in `src/repo_txns.h`). Coins descending from them are valid ECX by consensus; flag them only if your compliance policy cares about provenance.
+- **Repurposed (Patoshi) coins:** 220 hard-coded transactions spend Satoshi-era coins without signatures (whitelisted in `src/repo_txns.h`; the drynet4 set, expanded from drynet3's 122). Coins descending from them are valid ECX by consensus; flag them only if your compliance policy cares about provenance.
 
-## Test it on drynet3
+## Test it on drynet4
 
-Practice the split on drynet3, then attempt to replay your own transactions across drynet3 and a regtest or mainnet-following node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior.
+Practice the split on drynet4, then attempt to replay your own transactions across drynet4 and a regtest or mainnet-following node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior.

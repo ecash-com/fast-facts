@@ -24,7 +24,7 @@ Default ports follow the pattern `40<slot>` (P2P), `60<slot>` (RPC), `280<slot>`
 
 - **Deposit (L1 to L2):** an M5 deposit transaction sends ECX into the sidechain's BIP300 escrow UTXO. Wallet software (BitWindow, sidechain wallets) handles this.
 - **Withdrawal (L2 to L1):** withdrawals are batched into **bundles** (up to 6,000 per bundle). A bundle needs a work score of **13,150 miner ACKs** within a **26,300-block window** (roughly 3-6 months) to pay out on L1. The slow path is the security model.
-- **Fast withdrawals:** a service that atomically swaps L2 coins for L1 coins immediately (a third party fronts the L1 coins and collects the bundle payout later). Drynet3 runs one at `fw1.drynet3.drivechain.dev`. Convenience service, not consensus-critical.
+- **Fast withdrawals:** a service that atomically swaps L2 coins for L1 coins immediately (a third party fronts the L1 coins and collects the bundle payout later). Drynet4 runs one at `fw1.drynet4.drivechain.dev`. Convenience service, not consensus-critical.
 - The escrow uses no cryptographic signatures (a hashrate escrow: anyone-can-spend UTXO protected by consensus rules), which is why the team describes the peg as quantum-proof.
 
 ## Proposing a new sidechain

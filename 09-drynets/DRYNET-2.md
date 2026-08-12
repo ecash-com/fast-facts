@@ -1,6 +1,9 @@
 # Drynet 2
 
-**Status: live.** Second eCash/Drivechain dry run: a fork of Bitcoin mainnet
+**Status: retired.** The public explorer and Electrum endpoints were
+unreachable as of 2026-08-11 (the `/info` hub still responds); superseded by
+[drynet3](DRYNET-3.md) and now [drynet4](DRYNET-4.md).
+Second eCash/Drivechain dry run: a fork of Bitcoin mainnet
 with BIP300/BIP301 activated, PoW difficulty reset to 1 at the fork block, and
 a first (test-sized) set of "repurpose" transactions.
 

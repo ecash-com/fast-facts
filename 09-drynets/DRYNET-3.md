@@ -1,8 +1,10 @@
 # Drynet 3
 
-**Status: live (current network).** Third eCash/Drivechain dry run: same fork
-point as drynet2 but with a new replay-protection scheme and the full
-Patoshi-coin reassignment list.
+**Status: live, but superseded by [drynet4](DRYNET-4.md).** Third
+eCash/Drivechain dry run: same fork point as drynet2 but with a new
+replay-protection scheme and the full Patoshi-coin reassignment list.
+Infrastructure was still up as of 2026-08-11; new integrations should target
+drynet4.
 
 
 | | |

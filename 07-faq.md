@@ -9,10 +9,10 @@ A hard fork of Bitcoin activating at BTC block ~963,648 (on or around August 22,
 No. BTC is untouched; eCash is a new chain that starts from Bitcoin's ledger.
 
 **What are the "repurposed" (Patoshi) coins?**
-The most controversial feature: on the eCash chain, a hard-coded list of early Satoshi-era coinbase transactions is made spendable without the original keys (script checks for those txids are skipped, via `setRepurposeTx` in `src/repo_txns.h`; drynet3 rehearses this with 122 txids). Only the eCash chain is affected; Satoshi's actual BTC is untouched. Expect user questions and media coverage.
+The most controversial feature: on the eCash chain, a hard-coded list of early Satoshi-era coinbase transactions is made spendable without the original keys (script checks for those txids are skipped, via `setRepurposeTx` in `src/repo_txns.h`; drynet4 rehearses this with 220 txids). Only the eCash chain is affected; Satoshi's actual BTC is untouched. Expect user questions and media coverage.
 
 **What is the mining situation at launch?**
-Same SHA-256d PoW as Bitcoin, but difficulty resets to minimum at the fork block. For the first ~2,016 blocks the chain is CPU-mineable and blocks arrive erratically; difficulty then re-equilibrates and blocks settle to roughly 10 minutes.
+Same SHA-256d PoW as Bitcoin, but difficulty resets to minimum at the fork block. Right after the fork the chain is CPU-mineable and blocks arrive erratically; difficulty then re-equilibrates and blocks settle toward 10 minutes. Drynet4 shows the dynamic live: days after its fork, difficulty is ~16,000 and a public pool is running ([08-mining.md](08-mining.md)).
 
 **What if BTC activates BIP300/301 itself?**
 The team has stated they would abandon the project in that case (unless eCash's market cap already exceeds BTC's).
@@ -35,7 +35,7 @@ During the post-fork difficulty re-equilibration, treat it like a young PoW netw
 Yes, via cross-chain atomic swaps (the CoinShift sidechain) between ECX and BTC, LTC, XMR, USDT. Context for liquidity expectations, not something an exchange must integrate.
 
 **Is there a testnet we can integrate against today?**
-Yes: **drynet3**, a live full-scale dry run (fork of Bitcoin mainnet at block 957,600 with the launch mechanics: difficulty reset, drivechains, replay protection, coin repurposing). Public node, explorer, Esplora API, and Electrum server are up; see [01-node-setup.md](01-node-setup.md). Drynets get replaced as launch approaches (drynet1 is already retired); the official per-network docs are in [09-drynets](09-drynets/README.md).
+Yes: **drynet4**, a live full-scale dry run (fork of Bitcoin mainnet at block 961,632 with the launch mechanics: difficulty reset, drivechains, replay protection, coin repurposing, and, new in this run, eCash's own network magic, ports, and datadir). Public node, explorer, Esplora API, Electrum server, and mining pool are up; see [01-node-setup.md](01-node-setup.md). Drynets get replaced as launch approaches (drynet1/2 are retired, drynet3 is superseded); the official per-network docs are in [09-drynets](09-drynets/README.md).
 
 **Where do we get launch-day software?**
 Binaries at https://releases.drivechain.info/ (hashes in `hashes.json`), source at https://github.com/ecash-com/bitcoin. The production branch/tag will be announced via https://drivechain.info/dev.txt, https://ecash.com, and the DcInsiders Telegram.
