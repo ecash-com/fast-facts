@@ -1,10 +1,9 @@
 # Mining
 
-> **This page now covers `alphanet`, which supersedes drynet4.** eCash is rolling out in three
-> stages — Alpha, Beta, Mainnet — each one its own fork of Bitcoin mainnet at its own height.
-> Drynet4 still runs, but it is no longer where new mining effort should go. The rest of this
-> repo has not been updated for the staged rollout yet; treat this page as the current one for
-> mining. Verified 2026-08-22.
+> **This page covers `alphanet`.** eCash is rolling out in three stages — Alpha, Beta, Mainnet —
+> each one its own fork of Bitcoin mainnet at its own height. The rest of this repo has not been
+> updated for the staged rollout yet; treat this page as the current one for mining.
+> Verified 2026-08-22.
 
 ## Fast facts
 
@@ -118,7 +117,7 @@ fix the installer answer as well.
 
 ### Templates must come from the enforcer
 
-New on alphanet, and the single biggest change from the drynet4 instructions: the node's
+New on alphanet, and the single biggest change from earlier guidance: the node's
 `getblocktemplate` now **refuses to serve anyone but the enforcer**.
 
 ```
@@ -152,13 +151,13 @@ Alphanet ships four working DNS seeds, so no `addnode` is needed:
 `seed.alpha.ecash.ninja`, `seed.alpha.bip300.xyz`, `seed.alpha.ecash.drivecha.in`,
 `seed.alpha.ecash.zuexeuz.net`.
 
-Network identity differs from drynet4 — message-start bytes are **`0xeca5a104`** (drynet4 used
-`0xeca5d404`); P2P/RPC ports stay **8533/8532**, datadir `~/.ecash`, config `ecash.conf`. Binaries
-are published as `L1-ecash-bitcoin-alphanet-<platform>.zip` at
+Alphanet's message-start bytes are **`0xeca5a104`**; P2P/RPC ports are **8533/8532**, datadir
+`~/.ecash`, config `ecash.conf`. Binaries are published as
+`L1-ecash-bitcoin-alphanet-<platform>.zip` at
 [releases.drivechain.info](https://releases.drivechain.info/).
 
-As on drynet4, `getblocktemplate` requires a connected, synced node — the drynet3 patch that let it
-run with no peers or during IBD is still gone.
+`getblocktemplate` requires a connected, synced node: it errors out while the node is still in
+initial block download or has no peers.
 
 ### 2. Create a payout address
 
@@ -314,9 +313,9 @@ regtest node (`tests/`), and per-mode verification checklists are in `VERIFY.md`
 
 - **The low-difficulty window is short but not instant.** Difficulty resets to 1 at the fork block
   and the first retarget is 2,016 blocks later (965,664 on alphanet). Because a retarget can raise
-  difficulty at most 4×, it takes several retarget periods for it to climb to equilibrium — on
-  drynet4 that meant roughly 16,000 within days. That window is when small miners matter, including
-  for ACKing sidechain proposals ([05](05-sidechains-and-l2s.md)).
+  difficulty at most 4×, it takes several retarget periods for it to climb to equilibrium — days,
+  not hours. That window is when small miners matter, including for ACKing sidechain proposals
+  ([05](05-sidechains-and-l2s.md)).
 - **Reorg risk.** While difficulty is re-equilibrating, blocks arrive fast and erratically and
   reorgs are far more likely than on Bitcoin. Do not treat freshly mined rewards as final.
 - **Replay.** Coinbase outputs are new post-fork coins and cannot be replayed. Later spends of them
@@ -325,5 +324,3 @@ regtest node (`tests/`), and per-mode verification checklists are in `VERIFY.md`
 - **`chain` reports `main`.** Every one of these networks is a mainnet fork, so `getblockchaininfo`
   returning `chain=main` is correct and not a misconfiguration. Verify which chain you are on by
   block hash at or after the fork height, never by chain name.
-- **Drynet4** is superseded but still running, including its pool on the old port 3333
-  ([09-drynets/DRYNET-4.md](09-drynets/DRYNET-4.md#mining)). Nothing mined there carries over.
