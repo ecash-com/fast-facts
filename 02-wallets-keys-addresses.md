@@ -1,10 +1,9 @@
 # Wallets, Keys & Addresses
 
-Key management is byte-for-byte identical to Bitcoin (a stated design goal of the fork); your existing BTC key-management stack works unchanged.
+Key management is byte-for-byte identical to Bitcoin (a stated design goal of the fork). Your existing BTC key-management stack works unchanged.
 
 ## Address & key formats
 
-Verified against `src/kernel/chainparams.cpp` on the `drynet4` branch:
 
 | Parameter | Value | Same as BTC? |
 |---|---|---|
@@ -72,7 +71,7 @@ bitcoin-cli -datadir=<dir> sendrawtransaction <hex>
 
 - `"timestamp":"now"` avoids rescans; use a real timestamp/height to pick up historical deposits (pre-fork timestamps need non-pruned block data, so plan around assumeutxo/prune for deep rescans).
 - The same xpub imported into a Bitcoin node and an eCash node yields the same addresses watching two different ledgers; that is how you observe both sides of the fork with one key set.
-- Lighter alternative: the Electrum server (`ssl://drynet4.drivechain.dev:50002`) or Esplora API. For custody-grade detection run your own node plus electrs.
+- Lighter alternative: the Electrum server (`ssl://explorer.alpha.ecash.ninja:50002`) or the Esplora API (`https://esplora.alpha.ecash.ninja`, [04](04-explorers-and-apis.md)). For custody-grade detection run your own node plus an Electrum server.
 - `dumpprivkey`/`importprivkey` only apply to legacy (BDB) wallets, which can no longer be created in v31. Use descriptors.
 
 ## Withdrawal construction: one eCash-specific rule

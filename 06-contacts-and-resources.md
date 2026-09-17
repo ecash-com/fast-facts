@@ -24,7 +24,7 @@ For time-sensitive issues (chain split, consensus bug, security incident):
 
 ### PGP keys
 
-As of 2026-07-27, no eCash/LayerTwo Labs PGP release-signing key has been published (no `.asc` signatures on the binary server, none in `dev.txt`). Binary integrity is verified via SHA-256 hashes in `hashes.json` on the release server. If you need signed binaries or a PGP channel for sensitive disclosure, request one via dev@layertwolabs.com, and re-check `https://drivechain.info/dev.txt` for newly published keys.
+As of 2026-09-16, no eCash/LayerTwo Labs PGP release-signing key has been published. L1 node binaries on releases.ecash.com carry GitHub build-provenance attestations plus SHA-256 hashes in `index.json`. If you need a PGP channel for sensitive disclosure, request one via dev@layertwolabs.com.
 
 ## Official sites
 
@@ -33,7 +33,6 @@ As of 2026-07-27, no eCash/LayerTwo Labs PGP release-signing key has been publis
 | https://ecash.com | Official eCash site (fork countdown, FAQ, downloads) |
 | https://layertwolabs.com | Company site; `/download` for BitWindow installers |
 | https://drivechain.info | Drivechain reference (literature, FAQ, misinformation rebuttals) |
-| https://drivechain.info/dev.txt | Canonical fast-info file, updated by Paul directly. Check this first |
 | https://www.truthcoin.info/blog/drivechain/ | Original Drivechain design writing |
 | https://bip300cusf.com/ | BIP300 CUSF (activation client) info |
 | http://bip300.xyz | Command-line install script |
@@ -42,7 +41,8 @@ As of 2026-07-27, no eCash/LayerTwo Labs PGP release-signing key has been publis
 
 | Repo | What it is |
 |---|---|
-| https://github.com/ecash-com/bitcoin | eCash L1 full node (Bitcoin Core fork). Branches: `drynet1` to `drynet4` (dry-run networks), `drynet4-bridge` (BTC-to-ECX relay), `master` (tracks upstream) |
+| https://github.com/ecash-com/bitcoin | eCash L1 full node (Bitcoin Core fork). Branches: `alphanet` (live), `betanet` (next stage, ~2026-09-19), `*-bridge` (BTC-to-ECX relay)  |
+| https://github.com/ecash-com/mempool | eCash fork of the mempool.space explorer |
 | https://github.com/LayerTwo-Labs | Main org: enforcer, sidechains, frontends |
 | https://github.com/LayerTwo-Labs/bip300301_enforcer | BIP300/301 validator/wallet daemon (gRPC) |
 | https://github.com/LayerTwo-Labs/drivechain-frontends | BitWindow (GUI wallet / activation client) |
@@ -55,14 +55,14 @@ Sidechain repos are listed in [05-sidechains-and-l2s.md](05-sidechains-and-l2s.m
 
 | Resource | URL |
 |---|---|
-| Binary server (all platforms) | https://releases.drivechain.info/ |
+| L1 node binaries | https://releases.ecash.com/ (`index.json`; `L1-ecash-bitcoin/alphanet/` and `L1-ecash-bitcoin/betanet/`) |
+| Binary server, everything else (enforcer, BitWindow, sidechains) | https://releases.drivechain.info/ |
 | SHA-256 hashes | https://releases.drivechain.info/hashes.json |
 | Version manifest | https://releases.drivechain.info/versions.json |
 | Download page | https://layertwolabs.com/download |
 | BitWindow one-line installer | `curl -fsSL https://raw.githubusercontent.com/LayerTwo-Labs/drivechain-frontends/refs/heads/master/install/install-bitwindow.sh \| bash` |
-| Docker (L1 node, drynet4) | `ghcr.io/ecash-com/bitcoin:drynet4` |
-
-Dry-run L1 binaries follow the pattern `L1-ecash-bitcoin-drynet4-<target>.zip` (macOS Apple Silicon and Intel, Linux x86_64, Windows x86_64).
+| Docker (L1 node) | `ghcr.io/ecash-com/bitcoin:alphanet` |
+| Docker (enforcer) | `ghcr.io/layertwo-labs/bip300301_enforcer` |
 
 ## Community channels
 

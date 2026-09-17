@@ -1,8 +1,8 @@
 ## eCash (ECX) Integration Guide
 
-Last updated: **2026-08-11**, pre-launch.
+Last updated: **2026-09-16**, during the **alphanet** stage.
 
-Technical parameters come from the live **drynet4** dry-run network and the `drynet4` branch of [`ecash-com/bitcoin`](https://github.com/ecash-com/bitcoin). Final launch parameters (fork height/hash, branch/tag, replay scheme) will be published at [drivechain.info/dev.txt](https://drivechain.info/dev.txt) and [ecash.com](https://ecash.com). Re-verify anything marked *drynet4* before go-live.
+eCash rolls out in three stages, each a fresh fork of Bitcoin mainnet: **alphanet** (live since 2026-08-23), **betanet** (fork block 967,680, expected ~2026-09-19), and **mainnet** (fork block ~973,728, ~2026-10-31). 
 
 ## Quick facts
 
@@ -10,16 +10,16 @@ Technical parameters come from the live **drynet4** dry-run network and the `dry
 |---|---|
 | Asset | eCash, ticker **ECX** |
 | What it is | Hard fork of Bitcoin by LayerTwo Labs, activating drivechains (BIP300/301). Every BTC address is credited ECX 1:1 at the fork block; BTC itself is untouched |
-| Fork point | BTC block **~963,648**, targeted **August 22, 2026** (~15:00 UTC) |
-| Consensus | SHA-256d PoW, one-time difficulty reset to minimum at fork, then normal retargeting |
-| Node software | Fork of **Bitcoin Core v31.1**: [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin); binaries at [releases.drivechain.info](https://releases.drivechain.info/) |
+| Fork points | alphanet **963,648** (2026-08-23, live), betanet **967,680** (~2026-09-19), mainnet **~973,728** (~2026-10-31, ~15:00 UTC) |
+| Consensus | SHA-256d PoW, one-time difficulty reset at the fork, then normal retargeting |
+| Node software | Fork of **Bitcoin Core v31.1**: [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin); binaries at [releases.ecash.com](https://releases.ecash.com/) (mirror: [releases.drivechain.info](https://releases.drivechain.info/)) |
 | Address/key formats | Identical to Bitcoin (`1...`/`3...`/`bc1...`, same WIF/xpub/xprv, secp256k1) |
-| Network identity | Own network magic (`0xeca5d404`) and ports **8533/8532** as of drynet4, so nodes can't cross-connect with Bitcoin Core; `getblockchaininfo` still reports `chain=main` ([details](01-node-setup.md)) |
+| Network identity | Own network magic per stage (alphanet `0xeca5a104`, betanet `0xeca5b104`) and ports **8533/8532**, so nodes can't cross-connect with Bitcoin Core; `getblockchaininfo` still reports `chain=main` ([details](01-node-setup.md)) |
 | Replay protection | Opt-in: set `nLockTime = 499999999` on eCash transactions ([details](03-replay-protection-and-coin-splitting.md)) |
-| Consensus quirk | 220 whitelisted "repurpose" transactions reassign Satoshi-era (Patoshi) coins without signatures |
-| Mining | SHA-256d, any Bitcoin miner works. Public pool `stratum+tcp://pool.drynet4.drivechain.dev:3333` ([details](08-mining.md)) |
+| Consensus quirk | Whitelisted "repurpose" transactions reassign Satoshi-era (Patoshi) coins without signatures |
+| Mining | SHA-256d, any Bitcoin miner works. Public pool `stratum+tcp://pool.alpha.bip300.xyz:3333` ([details](08-mining.md)) |
 | Sidechains | 7 drivechain L2s at launch (Thunder, zSide, BitNames, BitAssets, Truthcoin, Photon, CoinShift) |
-| Test network | **drynet4** (live): node `drynet4.drivechain.dev:8533`, [explorer](https://explorer.drynet4.drivechain.dev), [info hub](https://drynet4.drivechain.dev/info) |
+| Live network | **alphanet**: DNS seeds `seed.alpha.ecash.ninja` etc. (port 8533), [explorer](https://explorer.alpha.ecash.ninja), [Esplora API](https://esplora.alpha.ecash.ninja/blocks/tip/height), Electrum `ssl://explorer.alpha.ecash.ninja:50002` |
 | Dev contact | dev@layertwolabs.com, [t.me/DcInsiders](https://t.me/DcInsiders) |
 
 ## Docs
@@ -32,22 +32,21 @@ Technical parameters come from the live **drynet4** dry-run network and the `dry
 6. [Contacts & Resources](06-contacts-and-resources.md)
 7. [FAQ](07-faq.md)
 8. [Mining / Mining Pool](08-mining.md)
-9. [Drynet Dry-Run Networks](09-drynets/README.md) (official per-network docs: drynet1-4, connect and mine walkthroughs, what changed between runs)
 
 ## Integration checklist
 
-1. Run a node against drynet4 now; swap to the launch branch when announced. Dedicated datadir, pinned peers, verify the fork-block hash.
+1. Run a node against alphanet now, move to the betanet branch with a fresh datadir when it forks (~2026-09-19), and to the mainnet branch when announced. Dedicated datadir per stage, verify the fork-block hash.
 2. Reuse your Bitcoin pipeline (RPC, ZMQ, descriptors, electrs/mempool.space) pointed at the eCash node. Key balances by `(chain, address)`.
 3. Fork week: freeze withdrawals at the fork block, split coins (eCash side first, `nLockTime = 499999999`), resume with deep confirmation requirements while difficulty re-equilibrates.
 4. Set the magic nLockTime on every ECX withdrawal, permanently.
-5. Decide your crediting policy for customer BTC held at the fork block; prepare comms about ECX and the Satoshi-coin reassignment.
+5. Decide your crediting policy for customer BTC held at the mainnet fork block; prepare comms about ECX and the Satoshi-coin reassignment.
 
 ## Primary sources
 
-- [drivechain.info/dev.txt](https://drivechain.info/dev.txt), the canonical fast-info file, updated frequently
-- [ecash.com](https://ecash.com), official site and FAQ
-- [drynet4.drivechain.dev/info](https://drynet4.drivechain.dev/info), live test network hub
-- [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin), [github.com/LayerTwo-Labs](https://github.com/LayerTwo-Labs)
+- [ecash.com](https://ecash.com), official site, stage dates and heights, FAQ
+- [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin) (branch READMEs carry each stage's parameters), [github.com/LayerTwo-Labs](https://github.com/LayerTwo-Labs)
+- [explorer.alpha.ecash.ninja](https://explorer.alpha.ecash.ninja), live alphanet explorer
+- [pool.drivechain.info](https://pool.drivechain.info), mining pool registry
 - [BIP300](https://github.com/bitcoin/bips/blob/master/bip-0300.mediawiki), [BIP301](https://github.com/bitcoin/bips/blob/master/bip-0301.mediawiki)
 
 ## Support Groups
