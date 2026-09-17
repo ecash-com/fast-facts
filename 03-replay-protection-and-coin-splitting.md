@@ -18,7 +18,6 @@ For an exchange this is dangerous in both directions:
 - **No tooling impact:** serialization is unchanged; any wallet, library, or HSM can set the field (with sequence numbers below `0xffffffff` so locktime is enforced, as usual).
 - Implemented in `IsFinalTx` (`src/consensus/tx_verify.cpp`) with a matching CLTV adjustment; functional test `test/functional/feature_replay_protection.py`.
 
-> **Scheme history, verify before launch:** drynet1 and drynet2 used a magic transaction version (`12566463` / `0x00BFBF3F`) instead; per-network details are in [09-drynets](09-drynets/README.md). Confirm the final scheme against the launch branch and https://drivechain.info/dev.txt before going live.
 
 ## How to split coins (exchange procedure)
 
@@ -35,8 +34,8 @@ For end users, BitWindow performs the split as an automatic one-time step after 
 
 - A customer's ECX deposit may be a replay of their BTC transaction (or vice versa). Crediting is fine, but credit each chain only from that chain's own node and index; never infer a deposit on one chain from a transaction seen on the other.
 - The "same" transaction can confirm at different times, or on only one chain, ever. Treat the ledgers as fully independent from the first post-fork block.
-- **Repurposed (Patoshi) coins:** 220 hard-coded transactions spend Satoshi-era coins without signatures (whitelisted in `src/repo_txns.h`; the drynet4 set, expanded from drynet3's 122). Coins descending from them are valid ECX by consensus; flag them only if your compliance policy cares about provenance.
+- **Repurposed (Patoshi) coins:** hard-coded transactions spend Satoshi-era coins without signatures (whitelisted in `src/repo_txns.h`; 220 txids on alphanet, 232 on betanet). Coins descending from them are valid ECX by consensus.
 
-## Test it on drynet4
+## Test it on alphanet and betanet
 
-Practice the split on drynet4, then attempt to replay your own transactions across drynet4 and a regtest or mainnet-following node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior.
+Practice the split on alphanet (and again on betanet, which forks at 967,680 around 2026-09-19 and is a fresh chain), then attempt to replay your own transactions across the eCash stage and a regtest or mainnet-following Bitcoin node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior. 

@@ -5,55 +5,78 @@
 | | |
 |---|---|
 | Algorithm | **SHA-256d**, identical to Bitcoin. Any Bitcoin miner works unmodified: ASICs, home miners (Bitaxe, NerdAxe), cpuminer |
-| Network | **drynet4** (live). Difficulty reset to 1 at fork block 961,632, then normal 2,016-block retargeting |
-| Current difficulty | ~16,000 as of 2026-08-11 (Bitcoin: ~10¹⁴). Network hashrate is about 1 TH/s, so one small home ASIC finds blocks. Live value: [explorer](https://explorer.drynet4.drivechain.dev) |
-| Block reward | ~3.125 ECX + fees; spendable after 100 confirmations (standard coinbase maturity) |
-| Public pool | `stratum+tcp://pool.drynet4.drivechain.dev:3333` ([dashboard](https://pool.drynet4.drivechain.dev)) |
-| Pool login | username = a **Thunder sidechain address** (optionally `<address>.<rig_label>`), password ignored |
-| Solo mining | point any `getblocktemplate` SHA-256d miner at your own node ([below](#solo-mining)) |
+| Network | **alphanet** (live since 2026-08-23). Forked Bitcoin at block **963,648** (hash `0000000000b360c17636b7a6c366e3effbe91a847eb5d61b7a7b29476439e924`), difficulty reset to 1 there, then normal 2,016-block retargeting |
+| Current state | Height, difficulty, hashrate, block times, next retarget, and blocks per pool: [explorer.alpha.ecash.ninja/mining](https://explorer.alpha.ecash.ninja/mining) |
+| Block reward | 3.125 ECX + fees; spendable after 100 confirmations (standard coinbase maturity) |
+| Public pool | `stratum+tcp://pool.alpha.bip300.xyz:3334` ([dashboard](https://pool.alpha.bip300.xyz)), run by LayerTwo Labs. Solo mode, 1% fee |
+| Other pools | third-party pools listed at [pool.drivechain.info](https://pool.drivechain.info) |
+| Solo mining | point a `getblocktemplate` miner at the **enforcer's** template server, never at the node directly ([below](#solo-mining)) |
+| Next networks | **betanet** forks at block **967,680** (~2026-09-19) and starts at difficulty ~10⁹, not 1. **Mainnet** forks at ~973,728 (~2026-10-31). See [what changes next](#what-changes-with-betanet-and-mainnet) |
 
 ## Mining at the public pool
 
-The one public pool today is LayerTwo Labs' [simplepool](https://github.com/LayerTwo-Labs/simplepool) instance. Point any stratum miner at it:
+LayerTwo Labs runs a [simplepool](https://github.com/LayerTwo-Labs/simplepool) instance at [pool.alpha.bip300.xyz](https://pool.alpha.bip300.xyz). Point any stratum miner at it:
 
 ```
-URL:       stratum+tcp://pool.drynet4.drivechain.dev:3333
-Username:  <your-thunder-address>.<rig_label>     # rig label optional
+URL:       stratum+tcp://pool.alpha.bip300.xyz:3334
+Username:  <your-bitcoin-address>.<rig_label>     # rig label optional
 Password:  x                                      # ignored, any value
 ```
 
-- **The username must be a Thunder address, not an L1/Bitcoin address.** The pool runs in PPS mode and pays out on the Thunder sidechain (drivechain #9). Each accepted share credits 1,000 sats × share difficulty, block or not; the operator takes a 1% fee, periodically deposits L1 rewards into Thunder via BIP300, and a payout worker settles miners' balances there. Get an address with `thunder-cli get-new-address` or from the Thunder wallet in BitWindow. An L1 address is rejected (`invalid thunder address`) and no shares accrue.
-- Vardiff is on, so low-hashrate miners still accrue share credits. The [dashboard](https://pool.drynet4.drivechain.dev) shows pool stats, recent blocks, and per-worker pages.
+- **The username is an L1 Bitcoin address**. The pool runs in solo mode: the block's coinbase pays whoever found it, minus a 1% fee, spendable after 100 confirmations. Nothing is held by the pool.
+- **Betanet:** [pool.beta.bip300.xyz](https://pool.beta.bip300.xyz) is already up ahead of the fork (`stratum+tcp://pool.beta.bip300.xyz:3334`).
+
+## Other public pools
+
+Third-party pools are listed at [pool.drivechain.info](https://pool.drivechain.info), with stratum URL, mode, fee, and what the username must be (a Bitcoin address for coinbase-paid pools, a Thunder address for Thunder-paid ones). The list is maintained in [`LayerTwo-Labs/mining-pools`](https://github.com/LayerTwo-Labs/mining-pools) and is what the explorer uses to attribute blocks.
 
 ## Solo mining
 
-The recommended solo setup mines against the block template served by the [`bip300301_enforcer`](https://github.com/LayerTwo-Labs/bip300301_enforcer), not the node's own. Templates straight from the node contain ordinary transactions only; the enforcer's templates additionally carry the BIP300/301 coinbase data (sidechain proposal and withdrawal-bundle ACKs, BMM commitments), so blocks built from them earn BIP301 blind-merged-mining fees and participate in sidechain governance. This is the stack the official software (BitWindow, simplepool) is built around.
+**Alphanet's node refuses plain `getblocktemplate` calls.** The `alphanet` branch adds a `bip300301` rule to the RPC: a `template` request that does not acknowledge the rule fails with `you should not be calling getblocktemplate from this daemon, instead call it from bip300301_enforcer`, and every template is returned with `!bip300301` in `rules`. Node templates contain no BIP300/301 coinbase data (sidechain and withdrawal ACKs, BMM commitments), so a block built from one would orphan sidechain activity. Only the enforcer adds those commitments. 
+
+So the solo stack is: **eCash node → `bip300301_enforcer` (template server) → your GBT miner or stratum pool.** 
 
 ### 1. Run the node
 
-A running, synced eCash node ([01](01-node-setup.md)) with the RPC server, credentials, and ZMQ enabled in `ecash.conf`:
+A synced, **unpruned** alphanet node with RPC and ZMQ enabled (the enforcer refuses pruned nodes; assumeutxo-bootstrapped nodes are fine). Get it from the `alphanet` branch, the Docker image `ghcr.io/ecash-com/bitcoin:alphanet`, or the prebuilt binaries at [releases.ecash.com](https://releases.ecash.com/) (`L1-ecash-bitcoin/alphanet/`, verifiable with `gh attestation verify L1-ecash-bitcoin-<target>.zip --repo ecash-com/bitcoin`; mirrored as `L1-ecash-bitcoin-alphanet-<target>.zip` on [releases.drivechain.info](https://releases.drivechain.info/)).
+
+Alphanet has its own network magic (`0xeca5a104`), ports P2P 8533 / RPC 8532, datadir `~/.ecash`, config `ecash.conf`, and built-in DNS seeds (`seed.alpha.ecash.ninja`, `seed.alpha.bip300.xyz`, `seed.alpha.ecash.drivecha.in`, `seed.alpha.ecash.zuexeuz.net`), so a plain `bitcoind` finds peers on its own. Full node setup in [01-node-setup.md](01-node-setup.md).
 
 ```ini
+# alphanet/ecash.conf
 server=1
 rpcuser=user
 rpcpassword=pass
 zmqpubsequence=tcp://127.0.0.1:29000
+# no prune=; the enforcer needs full blocks
 ```
-
-Note: unlike drynet3, drynet4 dropped the patch that let `getblocktemplate` run with no peers or during IBD, so the node must be connected (e.g. `addnode=drynet4.drivechain.dev:8533`) and fully synced before templates are served. The fork block itself being minimum-difficulty remains a consensus rule.
-
-### 2. Create a payout address
 
 ```sh
-bitcoin-cli -datadir=./drynet4 createwallet mine
-bitcoin-cli -datadir=./drynet4 getnewaddress
+bitcoind -datadir=./alphanet
+# optional fast bootstrap (~9.5 GB snapshot at the fork block, pinned in the node):
+#   curl -O https://data.drivechain.dev/alphanet/utxo-963648.dat
+#   bitcoin-cli -datadir=./alphanet loadtxoutset utxo-963648.dat
+bitcoin-cli -datadir=./alphanet getblockhash 963648
+# 0000000000b360c17636b7a6c366e3effbe91a847eb5d61b7a7b29476439e924
 ```
 
-### 3. Run the enforcer
+`getblocktemplate` requires a connected, fully synced node. 
+
+### 2. Choose a payout address
+
+Any L1 address you control. The node's wallet is one way to get one:
+
+```sh
+bitcoin-cli -datadir=./alphanet createwallet mine
+bitcoin-cli -datadir=./alphanet getnewaddress
+```
+
+### 3. Run the enforcer 
 
 ```sh
 bip300301_enforcer \
-  --node-rpc-addr=localhost:8532 \
+  --network-preset=alphanet \
+  --node-rpc-addr=127.0.0.1:8532 \
   --node-rpc-user=user --node-rpc-pass=pass \
   --node-zmq-addr-sequence=tcp://127.0.0.1:29000 \
   --enable-wallet \
@@ -71,22 +94,13 @@ curl -s --data '{"method":"getblocktemplate","params":[{"rules":["segwit"]}]}' h
 Any GBT-compatible SHA-256d miner, aimed at **8122** instead of the node's 8532, e.g. cpuminer:
 
 ```sh
-minerd -a sha256d -o http://127.0.0.1:8122 --coinbase-addr=<your-address>
+minerd -a sha256d -o http://127.0.0.1:8122 --coinbase-addr=<any-address>
 ```
 
-Or run a stratum pool against it so ordinary ASIC miners can connect without touching GBT; see [running your own pool](#running-your-own-pool-simplepool) below.
+- **The reward goes to `--coinbase-recipient`**, not to the miner's own `--coinbase-addr`, because the miner uses the served coinbase as-is. A pool that wants to pay its miners replaces the reward output while keeping the commitment `OP_RETURN`s byte-for-byte.
 
-### Fallbacks
+Or run a stratum pool against the enforcer so ordinary ASICs can connect without touching GBT; see [running your own pool](#running-your-own-pool-simplepool) below.
 
-- **Node templates directly:** point the GBT miner at the node instead (`-o http://127.0.0.1:8532 -O user:pass`). Blocks are valid but contain no drivechain coinbase data, so no BMM fees and no ACK participation.
-- **`generatetoaddress`:** still present as a hidden RPC (absent from `help` but works), no longer practical: at difficulty ~16,000 a block takes ~7×10¹³ hashes and `maxtries` caps at ~2.1 billion per call. It was only viable in the first hours after the fork at difficulty 1.
-
-### Good to know
-
-- **Reorg risk:** while difficulty is re-equilibrating, blocks arrive fast and erratically (currently ~1/minute) and reorgs are more likely than on Bitcoin. Do not treat freshly mined rewards as final.
-- **Replay:** coinbase outputs are new post-fork coins and cannot be replayed. Later spends of them are eCash-only too; setting `nLockTime = 499999999` anyway costs nothing ([03](03-replay-protection-and-coin-splitting.md)).
-- **Why mine now:** the team expects difficulty to find an equilibrium proportional to the USD value of the block reward. The low-difficulty window is when small miners matter, including for ACKing sidechain proposals ([05](05-sidechains-and-l2s.md)).
-- The official per-network walkthrough lives in [09-drynets/DRYNET-4.md](09-drynets/DRYNET-4.md#mining).
 
 ## Running your own pool: simplepool
 
@@ -99,24 +113,23 @@ miners (stratum)
                                                               |
                                                        eCash bitcoind (RPC 8532 + ZMQ)
 
-   (fallback: simplepool can also talk to eCash bitcoind directly on 8532)
 ```
 
-simplepool has no network-specific configuration; it only speaks JSON-RPC to whatever template backend you point it at. Connecting to the eCash network is entirely the node's job ([01](01-node-setup.md)).
+simplepool has no network-specific configuration. It only speaks JSON-RPC to the template backend. On alphanet that backend **must** be the enforcer.
 
 ### Build and run
 
 ```sh
 git clone https://github.com/LayerTwo-Labs/simplepool
 cd simplepool
-# macOS: brew install sqlite curl        Debian/Ubuntu: apt install build-essential libsqlite3-dev libcurl4-openssl-dev
+# macOS: brew install sqlite curl hiredis node   Debian/Ubuntu: apt install build-essential libsqlite3-dev libcurl4-openssl-dev libhiredis-dev sqlite3
 make
 mkdir -p data && sqlite3 data/shares.db < schema.sql
 cp proxy.conf.example proxy.conf
 ./build/simplepool proxy.conf
 ```
 
-Minimal `proxy.conf`, pointing at the enforcer's template server (recommended; run it as in [solo mining](#solo-mining) above):
+Minimal `proxy.conf`, pointing at the enforcer started as in [solo mining](#solo-mining):
 
 ```ini
 listen_addr = 0.0.0.0
@@ -134,7 +147,6 @@ pool_mode = solo
 db_path = ./data/shares.db
 ```
 
-To use the node directly instead (plain templates, no drivechain coinbase data), set `bitcoind_url = http://127.0.0.1:8532` plus `bitcoind_user`/`bitcoind_pass` (cookie auth is not supported). Vardiff is on by default (`vardiff_target_spm = 12`).
 
 ### Pool modes
 
@@ -144,4 +156,4 @@ To use the node directly instead (plain templates, no drivechain coinbase data),
 
 ### Deployment
 
-`scripts/deploy-to-server.sh` provisions a full host (systemd units for pool + dashboard, nginx, UFW). A Docker compose setup under `deploy/docker/` covers the stratum proxy, dashboard, and payout worker; it expects bitcoind, Thunder, the enforcer, and electrs on the host. Integration test: `tests/test_integration.sh` against a local regtest node.
+`scripts/deploy-to-server.sh` provisions a full host (systemd units for pool + dashboard, nginx, UFW). A Docker compose setup under `deploy/docker/` covers the stratum proxy, dashboard, and payout worker; it expects bitcoind, the enforcer, and (for Thunder rails) a Thunder node on the host. Integration test: `scripts/regtest/` brings up the whole stack against a local regtest node.
