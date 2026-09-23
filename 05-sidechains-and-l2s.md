@@ -4,9 +4,9 @@ Exchanges only strictly need the L1 (ECX deposits and withdrawals work exactly l
 
 **Where the rules live:** the `ecash-com/bitcoin` node contains only minimal drivechain plumbing (`OP_DRIVECHAIN` made standard, OP_RETURN limits removed, the fork-height difficulty reset). The BIP300/301 state machine (sidechain proposals, deposit escrows, withdrawal-bundle ACK counting, blind merged mining) is validated by the companion daemon [`bip300301_enforcer`](https://github.com/LayerTwo-Labs/bip300301_enforcer) running alongside the node. Plain L1 nodes without the enforcer still follow the chain.
 
-## The seven launch sidechains
+## The seven LayerTwo Labs sidechains
 
-Each is its own chain with its own node software, secured by eCash miners via BIP300 (no federation, no multisig custodians).
+Each is its own chain with its own node software, secured by eCash miners via BIP300 (no federation, no multisig custodians). Live status per slot: [beta.ecash.ninja](https://beta.ecash.ninja).
 
 | Slot | Sidechain | Purpose | Repo |
 |---|---|---|---|
@@ -20,10 +20,12 @@ Each is its own chain with its own node software, secured by eCash miners via BI
 
 Default ports follow the pattern `40<slot>` (P2P), `60<slot>` (RPC), `280<slot>` (ZMQ); e.g. Thunder (slot 9) uses P2P 4009, RPC 6009. Full table: https://drivechain.info/dev.txt
 
+**Community sidechains:** slots are open to anyone (see [proposing](#proposing-a-new-sidechain)). On betanet, **FreeBank** (slot 130, https://ecxfreebank.com) was proposed at height 968,020 and activated at 969,029 with 1,009 ACKs, so betanet runs eight active sidechains.
+
 ## How coins move between L1 and L2
 
 - **Deposit (L1 to L2):** an M5 deposit transaction sends ECX into the sidechain's BIP300 escrow UTXO. Wallet software (BitWindow, sidechain wallets) handles this.
-- **Withdrawal (L2 to L1):** withdrawals are batched into **bundles** (up to 6,000 per bundle). A bundle needs a work score of **13,150 miner ACKs** within a **26,300-block window** (roughly 3-6 months) to pay out on L1. The slow path is the security model.
+- **Withdrawal (L2 to L1):** withdrawals are batched into **bundles** (up to 6,000 per bundle). A bundle needs a work score of **13,150 miner ACKs** within a **26,300-block window** (roughly 3-6 months) to pay out on L1. The slow path is the security model. These are the mainnet values and betanet runs them unchanged; alphanet used hours-scale thresholds (72 ACKs in 144 blocks) so a full cycle could be rehearsed in a day.
 - **Fast withdrawals:** a service that atomically swaps L2 coins for L1 coins immediately (a third party fronts the L1 coins and collects the bundle payout later). Convenience service, not consensus-critical.
 - The escrow uses no cryptographic signatures (a hashrate escrow: anyone-can-spend UTXO protected by consensus rules), which is why the team describes the peg as quantum-proof.
 
@@ -38,7 +40,7 @@ Anyone can propose one; miners decide activation (BIP300 M1/M2):
    ```
    BitWindow also exposes this in its GUI.
 3. **M2, ACK:** miners ACK the proposal in subsequent coinbases.
-   - Unused slot: activates unless it accumulates 1,008 fails (non-ACKing blocks) within 2,016 blocks, i.e. sustained ~50% hashrate approval for about two weeks.
+   - Unused slot, mainnet: needs **1,815 ACKs within 2,016 blocks**, i.e. sustained ~90% hashrate approval for about two weeks. Betanet trials a lower **1,008-ACK** (~50%) threshold, which is how FreeBank activated about 1,000 blocks after its proposal.
    - Overwriting a used slot: requires the longer 26,300-block / 13,150-fail threshold.
 4. Once active, the sidechain's escrow exists at L1 and deposits can begin.
 

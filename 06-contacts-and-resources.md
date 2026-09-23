@@ -31,6 +31,7 @@ As of 2026-09-16, no eCash/LayerTwo Labs PGP release-signing key has been publis
 | Site | Purpose |
 |---|---|
 | https://ecash.com | Official eCash site (fork countdown, FAQ, downloads) |
+| https://beta.ecash.ninja | Betanet hub: L1 tip, sidechain status, links (`alpha.ecash.ninja` for the retired alphanet) |
 | https://layertwolabs.com | Company site; `/download` for BitWindow installers |
 | https://drivechain.info | Drivechain reference (literature, FAQ, misinformation rebuttals) |
 | https://www.truthcoin.info/blog/drivechain/ | Original Drivechain design writing |
@@ -41,13 +42,14 @@ As of 2026-09-16, no eCash/LayerTwo Labs PGP release-signing key has been publis
 
 | Repo | What it is |
 |---|---|
-| https://github.com/ecash-com/bitcoin | eCash L1 full node (Bitcoin Core fork). Branches: `alphanet` (live), `betanet` (next stage, ~2026-09-19), `*-bridge` (BTC-to-ECX relay)  |
+| https://github.com/ecash-com/bitcoin | eCash L1 full node (Bitcoin Core fork). Branches: `betanet` (live since 2026-09-19), `alphanet` (retired 2026-09-24), `drynet1`-`drynet4` (historical), `*-bridge` (BTC-to-ECX relay) |
 | https://github.com/ecash-com/mempool | eCash fork of the mempool.space explorer |
 | https://github.com/LayerTwo-Labs | Main org: enforcer, sidechains, frontends |
 | https://github.com/LayerTwo-Labs/bip300301_enforcer | BIP300/301 validator/wallet daemon (gRPC) |
 | https://github.com/LayerTwo-Labs/drivechain-frontends | BitWindow (GUI wallet / activation client) |
 | https://github.com/ecash-com/ecash-wallet-mobile | Official mobile wallet (iOS TestFlight: https://testflight.apple.com/join/KfTBarUr) |
 | https://github.com/LayerTwo-Labs/simplepool | Stratum mining pool implementation (see [08-mining.md](08-mining.md)) |
+| https://github.com/LayerTwo-Labs/mining-pools | Pool registry behind pool.drivechain.info; per-network `networks/<net>/pools.json` and stage lifecycle dates in `networks.json` |
 
 Sidechain repos are listed in [05-sidechains-and-l2s.md](05-sidechains-and-l2s.md).
 
@@ -55,13 +57,13 @@ Sidechain repos are listed in [05-sidechains-and-l2s.md](05-sidechains-and-l2s.m
 
 | Resource | URL |
 |---|---|
-| L1 node binaries | https://releases.ecash.com/ (`index.json`; `L1-ecash-bitcoin/alphanet/` and `L1-ecash-bitcoin/betanet/`) |
+| L1 node binaries | https://releases.ecash.com/ (`index.json`; `L1-ecash-bitcoin/betanet/` is current, `L1-ecash-bitcoin/alphanet/` retired) |
 | Binary server, everything else (enforcer, BitWindow, sidechains) | https://releases.drivechain.info/ |
 | SHA-256 hashes | https://releases.drivechain.info/hashes.json |
 | Version manifest | https://releases.drivechain.info/versions.json |
 | Download page | https://layertwolabs.com/download |
 | BitWindow one-line installer | `curl -fsSL https://raw.githubusercontent.com/LayerTwo-Labs/drivechain-frontends/refs/heads/master/install/install-bitwindow.sh \| bash` |
-| Docker (L1 node) | `ghcr.io/ecash-com/bitcoin:alphanet` |
+| Docker (L1 node) | `ghcr.io/ecash-com/bitcoin:betanet` |
 | Docker (enforcer) | `ghcr.io/layertwo-labs/bip300301_enforcer` |
 
 ## Community channels

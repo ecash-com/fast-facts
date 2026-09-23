@@ -24,7 +24,7 @@ For an exchange this is dangerous in both directions:
 1. **Freeze** BTC (and ECX) withdrawals shortly before the fork block. Record your balance snapshot at the fork height.
 2. **Do not move pre-fork BTC UTXOs** until the eCash side is split. Order matters.
 3. **Split on the eCash side first:** sweep every pre-fork UTXO you control into fresh addresses (ideally from a new eCash-dedicated seed) with `nLockTime = 499999999`. These sweeps confirm only on eCash and cannot touch your BTC.
-4. **Wait for deep confirmation on eCash.** The post-fork period has minimum difficulty and elevated reorg risk; a reorg past your split transactions would re-expose you to replay.
+4. **Wait for deep confirmation on eCash.** The post-fork period has reset difficulty and elevated reorg risk; a reorg past your split transactions would re-expose you to replay.
 5. **The BTC side is now automatically safe:** your pre-fork UTXOs are already spent on eCash, so a Bitcoin transaction spending them has nothing to replay against. Resume BTC operations.
 6. **Keep setting `nLockTime = 499999999` on all future ECX transactions.** Post-split it is redundant, but it guards against any not-yet-split UTXO that later lands in your wallets (e.g. a customer depositing pre-fork, never-split coins).
 
@@ -34,8 +34,8 @@ For end users, BitWindow performs the split as an automatic one-time step after 
 
 - A customer's ECX deposit may be a replay of their BTC transaction (or vice versa). Crediting is fine, but credit each chain only from that chain's own node and index; never infer a deposit on one chain from a transaction seen on the other.
 - The "same" transaction can confirm at different times, or on only one chain, ever. Treat the ledgers as fully independent from the first post-fork block.
-- **Repurposed (Patoshi) coins:** hard-coded transactions spend Satoshi-era coins without signatures (whitelisted in `src/repo_txns.h`; 220 txids on alphanet, 232 on betanet). Coins descending from them are valid ECX by consensus.
+- **Repurposed (Patoshi) coins:** hard-coded transactions spend Satoshi-era coins without signatures (whitelisted in `src/repo_txns.h`; 232 txids on betanet, 220 on alphanet). Coins descending from them are valid ECX by consensus.
 
-## Test it on alphanet and betanet
+## Test it on betanet
 
-Practice the split on alphanet (and again on betanet, which forks at 967,680 around 2026-09-19 and is a fresh chain), then attempt to replay your own transactions across the eCash stage and a regtest or mainnet-following Bitcoin node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior. 
+Practice the split on betanet (live since 2026-09-19, a fresh fork of Bitcoin at block 967,680; alphanet is retired 2026-09-24), then attempt to replay your own transactions across betanet and a regtest or mainnet-following Bitcoin node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior. Mainnet will be a fresh fork again at ~973,728, so plan to repeat the drill there.
