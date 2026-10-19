@@ -11,22 +11,40 @@ For an exchange this is dangerous in both directions:
 
 ## The protection mechanism: magic nLockTime (opt-in)
 
-> A transaction with `nLockTime == 499999999` (`LOCKTIME_THRESHOLD - 1`) is treated as **final** by eCash nodes. Stock Bitcoin Core interprets that value as a block height ~500 million blocks in the future and rejects the transaction as non-final, so it can never be relayed or mined on Bitcoin.
+> A transaction carrying the network's **magic `nLockTime`** value is treated as **final** by eCash nodes. Stock Bitcoin Core interprets that value as a block height ~500 million blocks in the future and rejects the transaction as non-final, so it can never be relayed or mined on Bitcoin.
+
+### ⚠️ The magic value differs per network
+
+| Network | Magic `nLockTime` | Expressed as |
+| --- | --- | --- |
+| **Mainnet** | **`499999998`** | `LOCKTIME_THRESHOLD - 2` |
+| Betanet / alphanet | `499999999` | `LOCKTIME_THRESHOLD - 1` |
+
+`LOCKTIME_THRESHOLD` is `500000000`. Both values sit just below it, so both are read by Bitcoin Core as an unreachable block height — but **only the value matching the network you are on is treated as final by eCash nodes**. A mainnet transaction built with the betanet value (`499999999`) will be rejected as non-final on mainnet until that absurd height is reached, i.e. effectively never. Parameterize this constant in your signing code rather than hard-coding the betanet value you tested with.
 
 - **Opt-in:** transactions with any other `nLockTime` remain valid on both chains.
 - **One-directional:** it protects eCash transactions from replaying onto Bitcoin. There is no marker to make a Bitcoin transaction invalid on eCash; the BTC side is protected by splitting order (below).
 - **No tooling impact:** serialization is unchanged; any wallet, library, or HSM can set the field (with sequence numbers below `0xffffffff` so locktime is enforced, as usual).
-- Implemented in `IsFinalTx` (`src/consensus/tx_verify.cpp`) with a matching CLTV adjustment; functional test `test/functional/feature_replay_protection.py`.
 
+### Implementation
+
+Reference commit: [`b9df0c5` — "Add replay protection via magic nLockTime"](https://github.com/ecash-com/bitcoin/commit/b9df0c5fe1edc0f1ed37c96ee032c2c595136a9c)
+
+Two one-line consensus changes:
+
+- `IsFinalTx` in `src/consensus/tx_verify.cpp` — short-circuits to final when `tx.nLockTime == LOCKTIME_THRESHOLD - 2`, alongside the existing `nLockTime == 0` case.
+- `CheckLockTime` in `src/script/interpreter.cpp` — the matching CLTV adjustment, so the magic value is excluded from the height-type comparison and `OP_CHECKLOCKTIMEVERIFY` cannot be satisfied by it.
+
+Functional test: `test/functional/feature_replay_protection.py`.
 
 ## How to split coins (exchange procedure)
 
 1. **Freeze** BTC (and ECX) withdrawals shortly before the fork block. Record your balance snapshot at the fork height.
 2. **Do not move pre-fork BTC UTXOs** until the eCash side is split. Order matters.
-3. **Split on the eCash side first:** sweep every pre-fork UTXO you control into fresh addresses (ideally from a new eCash-dedicated seed) with `nLockTime = 499999999`. These sweeps confirm only on eCash and cannot touch your BTC.
+3. **Split on the eCash side first:** sweep every pre-fork UTXO you control into fresh addresses (ideally from a new eCash-dedicated seed) with `nLockTime = 499999998` on mainnet (`499999999` on betanet/alphanet). These sweeps confirm only on eCash and cannot touch your BTC.
 4. **Wait for deep confirmation on eCash.** The post-fork period has reset difficulty and elevated reorg risk; a reorg past your split transactions would re-expose you to replay.
 5. **The BTC side is now automatically safe:** your pre-fork UTXOs are already spent on eCash, so a Bitcoin transaction spending them has nothing to replay against. Resume BTC operations.
-6. **Keep setting `nLockTime = 499999999` on all future ECX transactions.** Post-split it is redundant, but it guards against any not-yet-split UTXO that later lands in your wallets (e.g. a customer depositing pre-fork, never-split coins).
+6. **Keep setting the magic `nLockTime` on all future ECX transactions.** Post-split it is redundant, but it guards against any not-yet-split UTXO that later lands in your wallets (e.g. a customer depositing pre-fork, never-split coins).
 
 For end users, BitWindow performs the split as an automatic one-time step after the fork.
 
@@ -39,3 +57,5 @@ For end users, BitWindow performs the split as an automatic one-time step after 
 ## Test it on betanet
 
 Practice the split on betanet (live since 2026-09-19, a fresh fork of Bitcoin at block 967,680; alphanet is retired 2026-09-24), then attempt to replay your own transactions across betanet and a regtest or mainnet-following Bitcoin node to verify your pipeline refuses them. `feature_replay_protection.py` shows the exact expected node behavior. Mainnet will be a fresh fork again at ~973,728, so plan to repeat the drill there.
+
+**When you promote the drill to mainnet, change the magic value from `499999999` to `499999998`.** This is the single most likely thing to break on cutover: betanet-tested signing code that hard-codes `LOCKTIME_THRESHOLD - 1` will produce mainnet transactions that no eCash node will accept as final.
