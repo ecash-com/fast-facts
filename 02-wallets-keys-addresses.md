@@ -1,6 +1,6 @@
 # Wallets, Keys & Addresses
 
-Key management is byte-for-byte identical to Bitcoin (a stated design goal of the fork). Your existing BTC key-management stack works unchanged. What differs is the network you connect to and one transaction field ([03](03-replay-protection-and-coin-splitting.md)).
+Key and address formats are identical to Bitcoin. Existing Bitcoin tooling can be reused, but format compatibility alone does not establish wallet support. Verify the network connection, signing workflow, replay-protection locktime and input sequence settings ([03](03-replay-protection-and-coin-splitting.md)).
 
 ## Address & key formats
 
@@ -40,7 +40,7 @@ No separate SLIP-44 coin type is registered for ECX; software treats it as coin 
 Identical best practice to Bitcoin:
 
 - Generate seeds from a high-quality entropy source (OS CSPRNG or hardware RNG on an HSM or air-gapped signer), 128-256 bits, as a BIP39 mnemonic or raw BIP32 seed.
-- Keep signing keys offline. Bitcoin hardware wallets and HSMs work as-is: they will sign eCash transactions because they can't tell the difference (see [03](03-replay-protection-and-coin-splitting.md) for why that matters). Check that your signer lets you set `nLockTime` and a non-final `nSequence`.
+- Keep signing keys offline. Bitcoin hardware wallets and HSMs use compatible signing formats, but support depends on the device, firmware and companion application. Confirm that the complete workflow preserves `nLockTime` and a non-final input `nSequence`, then inspect the final signed transaction. Do not export a hardware-wallet seed merely to work around a missing feature.
 - Standard cold-storage hygiene: distributed backups, metal mnemonic backup, multisig (`wsh(multi(...))`) for treasury, periodic restore drills.
 - Core descriptor wallets store keys in encrypted SQLite (`walletpassphrase` unchanged). Back up via `listdescriptors true` or file-level wallet backups.
 
@@ -76,9 +76,9 @@ bitcoin-cli -datadir=<dir> sendrawtransaction <hex>
 
 ## Withdrawal construction: one eCash-specific rule
 
-Set `nLockTime = 499999998` on every ECX withdrawal, with at least one input `nSequence < 0xffffffff`. This is the opt-in replay-protection marker: final on eCash, permanently invalid on Bitcoin. Serialization is unchanged, so any wallet, library or HSM can produce protected transactions by setting that field. Details: [03](03-replay-protection-and-coin-splitting.md).
+Set `nLockTime = 499999998` on every ECX withdrawal, with at least one input `nSequence < 0xffffffff`. This makes the transaction final on eCash but non-final on Bitcoin until that far-future block height is passed. Normal signature, UTXO and script checks still apply. Serialization is unchanged, but the wallet or signing workflow must let you set and preserve both fields. Details: [03](03-replay-protection-and-coin-splitting.md).
 
-**Bitcoin Core wallet RPCs:** `sendtoaddress` and `sendmany` have no locktime parameter and always apply anti-fee-sniping (`nLockTime` = current height), so **every transaction they create is replayable**. Use an RPC that takes a locktime:
+**Bitcoin Core wallet RPCs:** `sendtoaddress` and `sendmany` have no locktime parameter and use ordinary anti-fee-sniping locktimes, not the eCash marker. Their transactions may replay if the inputs are spendable on both chains. Use an RPC that takes a locktime:
 
 | RPC | How to set the marker |
 |---|---|

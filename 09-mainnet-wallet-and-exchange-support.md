@@ -2,7 +2,9 @@
 
 Last updated: **2026-10-27**. Verified against the mainnet node release `ecash-v1.1.0-core31.1` (`master`, commit `5bd8690fab`), the live mainnet endpoints, and the network registry at https://drivechain.dev/config. Anything not yet public is marked **TBA** with where it will be announced.
 
-> **Breaking change from betanet:** the replay-protection locktime on mainnet is **`499999998`**, not the `499999999` used on alphanet and betanet. A mainnet send stamped with `499999999` is rejected as non-final by both eCash and Bitcoin nodes. Update this constant before cutover. Other differences from betanet: [testnets/](testnets/README.md#what-changes-between-betanet-and-mainnet).
+Looking for places to trade or your exchange's distribution policy? Use [Markets & Exchange Support](10-markets-and-exchange-support.md). This page is the technical integration playbook.
+
+> **Breaking change from betanet:** the replay-protection locktime on mainnet is **`499999998`**, not the `499999999` used on alphanet and betanet. With a non-final input sequence, a mainnet send stamped with `499999999` is rejected as non-final by both eCash and Bitcoin nodes. All-final input sequences instead disable Bitcoin's locktime check and provide no replay protection. Update the constant and verify the sequences before cutover. Other differences from betanet: [testnets/](testnets/README.md#what-changes-between-betanet-and-mainnet).
 
 > **Required node upgrade:** `ecash-v1.1.0-core31.1` (2026-10-26) introduced a new post-fork difficulty rule. Nodes on `ecash-v1.0.0-core31.1` split off the chain at block **974,016**. Upgrade every node, indexer backend and explorer before then.
 
@@ -33,13 +35,13 @@ Everything else (RPC, REST, ZMQ, wallet, PSBT, descriptors) is stock Bitcoin Cor
 
 ## 2. Transaction rules (every ECX send)
 
-1. **`nLockTime = 499999998`.** eCash treats it as final; Bitcoin treats it as a lock at block 499,999,998 and will never mine it. This is the only field a sender must change, because rule 2 already holds for any RBF-signalling wallet. Bitcoin Core's `sendtoaddress`/`sendmany` cannot set it (they always use the current height), so use `send`, `sendall`, `walletcreatefundedpsbt` or `createrawtransaction` with an explicit locktime ([02](02-wallets-keys-addresses.md#withdrawal-construction-one-ecash-specific-rule)).
+1. **`nLockTime = 499999998`.** eCash treats it as final. With rule 2, Bitcoin treats it as non-final until that far-future block height is passed. Verify both locktime and sequence fields in the final signed transaction; do not assume a wallet preserves them. Bitcoin Core's `sendtoaddress`/`sendmany` cannot set the marker, so use `send`, `sendall`, `walletcreatefundedpsbt` or `createrawtransaction` with an explicit locktime ([02](02-wallets-keys-addresses.md#withdrawal-construction-one-ecash-specific-rule)).
 2. **At least one input with `nSequence < 0xffffffff`.** Otherwise the locktime is ignored and the transaction is replayable. `0xfffffffd` (RBF) and `0xfffffffe` are both fine.
 3. **Do not combine the marker with `OP_CHECKLOCKTIMEVERIFY` scripts.** A transaction carrying `499999998` fails any CLTV check (`src/script/interpreter.cpp`). HTLC-style scripts need a different design on ECX.
 4. **Fees and dust follow Bitcoin Core defaults:** min relay 100 sat/kvB (0.1 sat/vB); dust 294 sats P2WPKH, 330 P2WSH/P2TR, 546 P2PKH. Zero-fee transactions do not relay.
 5. **Keys and addresses are identical to Bitcoin:** `1…`/`3…`/`bc1q…`/`bc1p…`, same WIF/xpub/xprv, coin type `0'`. Any BTC address is an ECX address. Label the chain in every receive UI and key balances by `(chain, address)`.
 
-Verify before the fork. The mainnet binary's `-regtest` enforces the same marker:
+Verify before the fork. The mainnet binary's `-regtest` enforces the same marker. Use isolated test keys and make the same test UTXO available on both regtest nodes; a missing-input rejection is not proof of replay protection. Do not broadcast a rehearsal to Bitcoin mainnet:
 
 ```sh
 bitcoind -regtest -datadir=./rt -daemon                # eCash mainnet binary
@@ -143,7 +145,7 @@ Broadcast: the canonical path is `sendrawtransaction` on your own node. `POST /t
 3. **Receive:** label the chain ("ECX") on every address display. An address identical to the BTC one is expected and correct.
 4. **Balances:** key by `(chain, address)`. Confirmed = `chain_stats`; pending = `mempool_stats`. Show unconfirmed history from `/address/{addr}/txs`.
 5. **Confirmations:** post-fork block times are erratic, and difficulty can climb only ~12% per 288-block window (first retarget at 974,016). Require deeper confirmations than on Bitcoin (tens, not six) for the first weeks; there is no official number.
-6. **Pre-fork coins:** any UTXO unspent as of block 973,727 exists on both chains. Spending it on Bitcoin without first splitting also moves the ECX. Offer a one-time "split" action that sweeps pre-fork UTXOs to a fresh address with the marker (§6 steps 4 and 5). Reference implementations: the official mobile wallet (https://github.com/ecash-com/ecash-wallet-mobile, BDK-based; see `docs/coin-splitting.md` and `docs/real-ecash-fork-transition.md`), which flags a coin for splitting only while Bitcoin's explorer shows it unspent, and BitWindow's post-fork split.
+6. **Pre-fork coins:** any UTXO unspent as of block 973,727 starts on both chains. Spending it on Bitcoin without first splitting may also move the ECX if the transaction is replayed. Offer a "split" action that sweeps selected pre-fork UTXOs to a fresh address with the marker (§6 steps 4 and 5). Verify separation per UTXO, including later receipts; one split is not a permanent wallet-wide status. Reference implementations: the official mobile wallet (https://github.com/ecash-com/ecash-wallet-mobile, BDK-based; see `docs/coin-splitting.md` and `docs/real-ecash-fork-transition.md`), which flags a coin for splitting only while Bitcoin's explorer shows it unspent, and BitWindow's post-fork split.
 7. **Treat it as real money:** the same send confirmations and warnings you use for BTC. Keep it distinct in the UI from betanet's practice coins.
 8. **Price:** CoinGecko id **`ecash-com`** (symbol ECX) is correct, but it is a preview listing with no price or tickers today. Do **not** use `ecash`; that is XEC, an unrelated project. Do not use the Solana wECX pre-trading quote as an ECX price feed without saying so. No official oracle exists; show no fiat value until a market exists.
 9. **Cutover day:** wait until the chain passes 973,728, verify the fork hash (§6), then enable mainnet as the default (the mobile wallet does exactly this).
@@ -156,9 +158,9 @@ Broadcast: the canonical path is `sendrawtransaction` on your own node. `POST /t
    ```
 2. **Snapshot:** record every customer BTC balance and every UTXO you control as of block **973,727**, the last block shared with Bitcoin. Decide and announce your ECX crediting policy before then. ecash.com tells users to ask whether you will credit ECX, when ECX withdrawals open, and whether BTC withdrawals pause around the fork.
 3. **Freeze** BTC and ECX withdrawals shortly before 973,728. Key the freeze on height, not clock time; the ETA drifts with Bitcoin's block rate (about two days ahead of the announced 2026-10-31 as of 2026-10-27).
-4. **Split ECX first:** sweep every pre-fork UTXO into fresh addresses (new ECX-dedicated seed) with `nLockTime = 499999998`. These confirm only on eCash.
+4. **Split ECX first:** sweep every pre-fork UTXO into fresh addresses (new ECX-dedicated seed) with `nLockTime = 499999998` and at least one input `nSequence < 0xffffffff`. Verify both fields after signing. These confirm only on eCash under current chain conditions.
 5. **Wait** for deep confirmation on eCash. Difficulty is re-equilibrating, and a reorg past the split re-exposes you.
-6. **Resume BTC** withdrawals: your pre-fork UTXOs are spent on eCash, so BTC spends cannot replay.
+6. **Check both chains, then resume BTC** withdrawals for verified split UTXOs: their ECX side must be spent and deeply confirmed, while the BTC side remains unspent. Omitted or newly received UTXOs need their own check, and a reorg can undo a split.
 7. **Resume ECX** deposits and withdrawals. Set the marker on every ECX withdrawal permanently. Credit ECX deposits only from your eCash node, never inferred from a BTC transaction.
 8. **Confirmations:** require dozens for ECX deposits until hashrate stabilises; monitor reorgs.
 9. **Patoshi coins:** 232 whitelisted transactions spend Satoshi-era coins without signatures. Coins descending from them are valid ECX; expect user questions.
