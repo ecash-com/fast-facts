@@ -1,6 +1,6 @@
 # Betanet
 
-The second eCash rehearsal. It forked Bitcoin at block **967,680** on 2026-09-19 and is still running as of 2026-10-27. No sunset date has been announced: the pool registry says it will retire "once mainnet is up", and the mobile wallet team says it keeps running beside mainnet. Betanet ECX (pECX) has no value. **For mainnet values, use the [main docs](../README.md).**
+The second eCash rehearsal. It forked Bitcoin at block **967,680** on 2026-09-19 and is still running as of 2026-10-27. No sunset date has been announced: the pool registry says it will retire "once mainnet is up", and the mobile wallet team says it keeps running beside mainnet. Betanet ECX (pECX) is a test-network asset, not native mainnet ECX; any separate redemption programme has its own terms ([overview](README.md#redemption-programmes)). **For mainnet values, use the [main docs](../README.md).**
 
 ## Parameters
 
@@ -73,11 +73,11 @@ bip300301_enforcer --network-preset=betanet \
 
 ## Test funds
 
-There is no faucet. Any key that held BTC at block 967,679 holds the same amount of betanet ECX: import that key or descriptor into a betanet node. You can also mine at a betanet pool (coinbase outputs mature after 100 blocks).
+There is no faucet. The fork copied Bitcoin's UTXOs at block 967,679, but the keys controlling those coins may still control real BTC or mainnet ECX. **Do not import production private keys or seeds for testing.** To inspect balances, use public descriptors in a watch-only wallet. For signing drills, use isolated regtest keys or dedicated betanet test funds. You can also mine to a fresh test wallet at a betanet pool (coinbase outputs mature after 100 blocks).
 
 ## Replay drill
 
-1. Split a pre-fork UTXO on betanet with `nLockTime = 499999999` and at least one input `nSequence < 0xffffffff`.
-2. Try to broadcast the same transaction to a Bitcoin node. It must be rejected as `non-final`.
+1. In an isolated regtest setup using the betanet binary, construct a spend with `nLockTime = 499999999` and at least one input `nSequence < 0xffffffff`. Use dedicated test keys and the same test UTXO on both nodes.
+2. Compare `testmempoolaccept` results on that node and stock Bitcoin Core regtest. The otherwise-valid transaction should be accepted on the betanet-binary node and rejected as `non-final` on Bitcoin Core. Do not broadcast a rehearsal to Bitcoin mainnet; a missing-input rejection alone proves nothing about replay protection.
 3. The betanet branch ships `test/functional/feature_replay_protection.py` for the betanet value. Mainnet's `master` does not include that test.
 4. **Before mainnet, change the constant to `499999998`** and run the regtest check in [09](../09-mainnet-wallet-and-exchange-support.md#2-transaction-rules-every-ecx-send).

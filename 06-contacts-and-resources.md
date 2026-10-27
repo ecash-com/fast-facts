@@ -28,6 +28,8 @@ As of 2026-09-16, no eCash/LayerTwo Labs PGP release-signing key has been publis
 
 ## Official sites
 
+For holders: [accessing ECX](https://ecash.com/how-to-claim/), [coin splitting](https://ecash.com/split/), and the [markets & exchange-support directory](10-markets-and-exchange-support.md). The directory separates wrapped-token markets from exchange distribution policies.
+
 | Site | Purpose |
 |---|---|
 | https://ecash.com | Official eCash site: fork height, [coin splitting](https://ecash.com/split/), [FAQ](https://ecash.com/faq/), [what to expect](https://ecash.com/what-to-expect/), [downloads](https://ecash.com/download/), [exchange listing campaign](https://ecash.com/list-ecx/) |

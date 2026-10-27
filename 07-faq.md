@@ -26,7 +26,10 @@ The team has stated they would abandon the project in that case (unless eCash's 
 The L1 is a Bitcoin Core clone (v31.1 base). RPC, wallet formats, address formats, transaction formats and the indexing stack are identical to Bitcoin. Reuse your BTC pipeline with a separate node and datadir, and set the replay marker on sends. Step-by-step: [09](09-mainnet-wallet-and-exchange-support.md).
 
 **Do we have to credit users ECX?**
-Users holding BTC on your exchange at the fork block implicitly own the corresponding ECX. The project's position is that crediting users more or less requires listing, and that not splitting your coins risks accidentally sending ECX along with BTC withdrawals. ecash.com runs a public [exchange listing campaign](https://ecash.com/list-ecx/) and cites the 2017 Bitcoin Cash precedent: some exchanges credited within hours, others reversed course months later. Legal and tax obligations vary by jurisdiction, but the operational risk is real either way.
+The matching coins are controlled by the exchange's keys, not directly by the customer's account. Publish your eligibility, snapshot, distribution and withdrawal policy; customers should not assume a credit until you confirm it. Distribution does not by itself require spot trading: providers may announce ECX distribution, a conditional cash distribution, or other arrangements. See the sourced [markets & exchange-support directory](10-markets-and-exchange-support.md). Applicable obligations depend on your terms and jurisdiction. Regardless of your distribution policy, unsplit coins expose operations to replay risk ([03](03-replay-protection-and-coin-splitting.md)).
+
+**Where can users find markets and exchange announcements?**
+Use [Markets & Exchange Support](10-markets-and-exchange-support.md) for SideShift and Orca's wrapped-token markets, and the published CoinW and GMO Coin fork policies. The page identifies the asset, network, source and verification date. Wrapped wECX trading is not native ECX trading, and a distribution announcement is not confirmation of deposits or withdrawals. Self-custody holders should start with the [holder guide](https://ecash.com/how-to-claim/) and [coin-splitting guidance](https://ecash.com/split/).
 
 **What will users ask us?**
 ecash.com tells users to ask their exchange three questions ([ecash.com/join](https://ecash.com/join/)). Will you credit ECX for BTC held at the mainnet snapshot? Will ECX withdrawals be supported, and when? Will BTC withdrawals pause around the fork? Publish answers before the fork.
@@ -44,7 +47,7 @@ Holding BTC in self-custody at block 973,727 is the main route. Others are cross
 Betanet is still live and has all the launch mechanics, but with a different replay marker, magic and difficulty rule ([testnets/betanet.md](testnets/betanet.md)). The mainnet binary's `-regtest` uses the mainnet replay marker. The mainnet endpoints (`*.ecash.ninja`) are already up and serve the shared chain until the fork ([04](04-explorers-and-apis.md)).
 
 **Is there a faucet?**
-No, on any eCash network. To test with real-shaped funds on betanet, import a key that held BTC at block 967,679, or mine.
+No, on any eCash network. Use regtest with dedicated test keys for signing and replay checks. For betanet, mine to a fresh test wallet or use dedicated betanet test funds. To inspect a pre-fork balance, import a public descriptor into a watch-only wallet, not the private key: that key may still control real BTC or mainnet ECX. See [betanet testing](testnets/betanet.md#test-funds).
 
 **Where do we get launch-day software?**
 L1 node: `ecash-v1.1.0-core31.1` at https://releases.ecash.com/L1-ecash-bitcoin/mainnet/latest/release.json, Docker `ghcr.io/ecash-com/bitcoin:latest`, source on `master` of https://github.com/ecash-com/bitcoin. Everything else (BitWindow, sidechains, enforcer) is at https://releases.drivechain.info/. Upgrade any v1.0.0 node before block 974,016.
@@ -52,7 +55,7 @@ L1 node: `ecash-v1.1.0-core31.1` at https://releases.ecash.com/L1-ecash-bitcoin/
 ## Wallets & custody
 
 **Do our existing HD wallet and cold-storage procedures work?**
-Yes. Same secp256k1, BIP32/39/44/49/84/86, address formats, PSBT flow, descriptor wallets and watch-only support. Existing BTC keys already control the matching ECX. See [02-wallets-keys-addresses.md](02-wallets-keys-addresses.md).
+The key and address formats, PSBT flow, descriptor wallets and watch-only support are compatible with Bitcoin. Verify your particular signer, firmware and companion application's network and replay-marker support before using it. Existing BTC keys already control the matching ECX; do not export a hardware-wallet seed to work around missing support. See [02-wallets-keys-addresses.md](02-wallets-keys-addresses.md).
 
 **Should we use the same seed for BTC and ECX?**
 Pre-fork keys control both automatically. For post-fork operations, use a separate seed for eCash wallets, so a compromise on one chain doesn't affect the other and accounting stays clean.
@@ -67,11 +70,14 @@ No. XEC (https://e.cash) is an unrelated project that shares the name. CoinGecko
 
 **What are wECX, wbECX and the Solana "eCash" token?**
 None of them is native ECX:
+
 - **wECX** is a wrapped token on Solana (mint `6ombVv3YMs9qpx1QkycD9XW8HKSfv7vGrCFX3cxCYMVY`), traded on Orca and referenced from https://buy.ecash.com. It is a pre-trading market, separate from native ECX on the eCash chain.
 - **wbECX** is the older beta wrapped token. It is not redeemable for real ECX after 2026-10-31.
 - The **pump.fun "eCash" memecoin** is an independent community token, with its own limited top-15-holder redemption programme ([ecash.com/sol-token](https://ecash.com/sol-token/)).
 
 Deposits of any of these are Solana SPL transfers, not ECX transactions.
+
+Verify the mint against the [official token reference](https://ecash.com/wrap_info.txt). Current market links and exchange policies are maintained on [Markets & Exchange Support](10-markets-and-exchange-support.md).
 
 ## Sidechains
 

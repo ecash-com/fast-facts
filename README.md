@@ -1,8 +1,20 @@
-## eCash (ECX) Integration Guide
+# eCash (ECX) Integration Guide
 
 Last updated: **2026-10-27**, before the mainnet fork (Bitcoin tip 973,441, 287 blocks to go). This guide covers **mainnet**. Alphanet and betanet are covered in [testnets/](testnets/README.md).
 
 eCash mainnet forks Bitcoin at block **973,728**, Bitcoin's next difficulty adjustment. The fork is set by height, not by date. As of 2026-10-27, mempool.space puts it at about **2026-10-29 15:00 UTC**; the earlier announced target was 2026-10-31. Live ETA: https://mempool.space/api/v1/difficulty-adjustment.
+
+## Holder quick links
+
+| What do you need? | Guide |
+|---|---|
+| I hold BTC and want to understand ECX access | [Bitcoin-holder guide](https://ecash.com/how-to-claim/) |
+| I need to separate BTC and ECX safely | [Coin splitting: wallet apps, hardware wallets and exchange accounts](https://ecash.com/split/) |
+| I want markets or my exchange's fork policy | [Markets & exchange support](10-markets-and-exchange-support.md) |
+| I need wallet software | [Official downloads](https://ecash.com/download/) — check the network and release |
+| I operate a wallet or exchange | [Mainnet integration playbook](09-mainnet-wallet-and-exchange-support.md) |
+
+There is no pre-claim registration. Never enter a seed phrase on a website. A betanet split does not split mainnet coins, and an exchange's fork-support announcement does not necessarily mean ECX trading or withdrawals are available.
 
 ## Quick facts
 
@@ -35,15 +47,16 @@ eCash mainnet forks Bitcoin at block **973,728**, Bitcoin's next difficulty adju
 7. [FAQ](07-faq.md)
 8. [Mining / Mining Pool](08-mining.md)
 9. [Mainnet Wallet & Exchange Support](09-mainnet-wallet-and-exchange-support.md) (step-by-step integration playbook)
-10. [Test networks: alphanet & betanet](testnets/README.md)
+10. [Markets & Exchange Support](10-markets-and-exchange-support.md) (wrapped-token markets and exchange distribution policies)
+11. [Test networks: alphanet & betanet](testnets/README.md)
 
 ## Integration checklist
 
 1. Run `ecash-v1.1.0-core31.1` (or later) with its own datadir, bootstrapped from the 965,000 snapshot. Make sure it is running v1.1.0 before block 974,016.
 2. Reuse your Bitcoin pipeline (RPC, ZMQ, descriptors, electrs/mempool.space) pointed at the eCash node. Key balances by `(chain, address)`.
-3. Set **`nLockTime = 499999998`** on every ECX transaction, permanently. If you tested on betanet, change the constant.
+3. Set **`nLockTime = 499999998`** on every ECX transaction, with at least one input **`nSequence < 0xffffffff`**. Verify both fields in the signed transaction. If you tested on betanet, change the locktime constant.
 4. Fork window: snapshot balances at block 973,727 and freeze withdrawals by height. Split coins on the eCash side first, then resume with deep confirmation requirements while difficulty re-equilibrates.
-5. Decide your crediting policy for customer BTC held at block 973,727, and publish it. Prepare comms about ECX, the Satoshi-coin reassignment, and the look-alike tokens (XEC, wECX).
+5. Decide your crediting policy for customer BTC held at block 973,727, and publish it. Distinguish distribution, trading, deposits and withdrawals. Explain the Satoshi-coin reassignment and the differences between native ECX, wrapped wECX and the unrelated XEC ([markets guide](10-markets-and-exchange-support.md)).
 6. Verify the fork block's hash against the explorer once it is mined, and alert on any tip mismatch.
 
 ## Primary sources
