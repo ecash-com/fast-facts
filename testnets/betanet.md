@@ -1,6 +1,6 @@
 # Betanet
 
-The second eCash rehearsal. It forked Bitcoin at block **967,680** on 2026-09-19 and is still running as of 2026-10-27. No sunset date has been announced: the pool registry says it will retire "once mainnet is up", and the mobile wallet team says it keeps running beside mainnet. Betanet ECX (pECX) is a test-network asset, not native mainnet ECX; any separate redemption programme has its own terms ([overview](README.md#redemption-programmes)). **For mainnet values, use the [main docs](../README.md).**
+The second eCash rehearsal. It forked Bitcoin at block **967,680** on 2026-09-19 and was still running on 2026-10-27. On 2026-11-13 none of its public services answered (explorer, Esplora and Blockbook under `*.beta.ecash.ninja` and the pool at `pool.beta.bip300.xyz` timed out; the hosted enforcer and fast-withdrawal URLs returned 404), although `seed.beta.ecash.ninja:8533` still accepted connections and the `betanet` entry is still in drivechain.dev/config. No sunset date has been announced: the pool registry says it will retire "once mainnet is up", and the mobile wallet team says it keeps running beside mainnet. Betanet ECX (pECX) is a test-network asset, not native mainnet ECX; any separate redemption programme has its own terms ([overview](README.md#redemption-programmes)). **For mainnet values, use the [main docs](../README.md).**
 
 ## Parameters
 
@@ -21,7 +21,7 @@ The second eCash rehearsal. It forked Bitcoin at block **967,680** on 2026-09-19
 | Binaries | https://releases.ecash.com/ `L1-ecash-bitcoin/betanet/<commit>/` (`index.json` lists the latest build) |
 | Docker | `ghcr.io/ecash-com/bitcoin:betanet` |
 | assumeutxo | no fork-point snapshot. The branch pins only upstream heights (840,000, 880,000, 910,000, 935,000); load a height-935,000 snapshot produced by any synced Bitcoin Core v31 node (`dumptxoutset utxo-935000.dat rollback=935000`) |
-| BIP300 thresholds | as mainnet, except unused-slot activation needs more than 1,008 of 2,016 blocks (mainnet 1,815) |
+| BIP300 thresholds | unused-slot activation needs more than 1,008 of 2,016 blocks (mainnet 1,815); withdrawal bundles need 13,150 ACKs in 26,300 blocks (mainnet: more than 6,048 in 12,096) |
 | Sidechains | FreeBank (slot 130, https://ecxfreebank.com) proposed at 968,020 and activated at 969,029 with 1,009 ACKs. The hub lists the LayerTwo Labs sidechains |
 
 ## Endpoints
@@ -36,7 +36,7 @@ The second eCash rehearsal. It forked Bitcoin at block **967,680** on 2026-09-19
 | Hosted enforcer | https://enforcer.beta.ecash.ninja |
 | Fast withdrawal | https://fastwithdraw.betanet.ecash.ninja |
 | Thunder (slot 9) P2P | `seed.beta.ecash.ninja:4009` |
-| `explorer.ecash.com` | still 302-redirects here as of 2026-10-27 |
+| `explorer.ecash.com` | no longer points here; it serves the mainnet explorer since the fork |
 
 Machine-readable: the `betanet` entry in https://drivechain.dev/config.
 

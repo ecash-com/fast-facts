@@ -65,14 +65,15 @@ bitcoin-cli -datadir=<dir> -rpcwallet=watch listunspent
 # ...or subscribe to ZMQ (zmqpubsequence) and use gettransaction / listsinceblock
 
 # 4. Withdrawals: build PSBT online (set locktime=499999998), sign offline, broadcast online
+#    v1.2.0 (Core 32.1) creates version 2 PSBTs by default; pass psbt_version if your signer needs version 0
 bitcoin-cli -datadir=<dir> -rpcwallet=watch walletcreatefundedpsbt '[]' '[{"bc1q...":0.1}]' 499999998 '{"replaceable":true}'
 bitcoin-cli -datadir=<dir> sendrawtransaction <hex>
 ```
 
 - `"timestamp":"now"` avoids rescans. Use a real timestamp or height to pick up historical deposits. Pre-fork timestamps need non-pruned block data, so plan around assumeutxo and pruning for deep rescans.
 - The same xpub imported into a Bitcoin node and an eCash node yields the same addresses watching two different ledgers. That is how you observe both sides of the fork with one key set.
-- Lighter alternative: the public Electrum server (`ssl://explorer.ecash.ninja:50002`) or the Esplora API (`https://esplora.ecash.ninja`, [04](04-explorers-and-apis.md)). For custody-grade detection, run your own node plus an Electrum server.
-- `dumpprivkey`/`importprivkey` only apply to legacy (BDB) wallets, which can no longer be created in v31. Use descriptors.
+- Lighter alternative: the public Electrum server (`ssl://fulcrum.ecash.ninja:50002`) or the Esplora API (`https://esplora.ecash.ninja`, [04](04-explorers-and-apis.md)). For custody-grade detection, run your own node plus an Electrum server.
+- `dumpprivkey`/`importprivkey` only apply to legacy (BDB) wallets, which this release cannot create. Use descriptors.
 
 ## Withdrawal construction: one eCash-specific rule
 
@@ -91,8 +92,9 @@ Decode the final signed transaction (`decoderawtransaction`) and check `locktime
 
 ## End-user wallets
 
-| Wallet | Mainnet status (2026-10-27) |
+| Wallet | Mainnet status (2026-11-13) |
 |---|---|
-| eCash mobile wallet ([ecash-com/ecash-wallet-mobile](https://github.com/ecash-com/ecash-wallet-mobile)) | v1.4.6 (2026-10-26) lists **eCash (ECX)** as a network, configured from drivechain.dev/config (id `ecash`). New and imported wallets switch to it by default once the chain passes block 973,728. It has a built-in split ("Check for splittable coins"), which flags a coin only while Bitcoin's explorer still shows it unspent. Android APK from [GitHub releases](https://github.com/ecash-com/ecash-wallet-mobile/releases/latest); iOS via [TestFlight](https://testflight.apple.com/join/PxZjPxrK) |
-| BitWindow (desktop; also the activation client) | build 0.2.251 (2026-10-26) includes the eCash mainnet network. https://ecash.com/download |
+| eCash mobile wallet ([ecash-com/ecash-wallet-mobile](https://github.com/ecash-com/ecash-wallet-mobile)) | v1.5.1 (build 48, 2026-11-11). **eCash (ECX)** mainnet is configured from drivechain.dev/config (id `ecash`) and is the default network. It has a built-in split ("Check for splittable coins"), which flags a coin only while Bitcoin's explorer still shows it unspent. Store links for Android and iPhone are on [ecash.com/wallets](https://ecash.com/wallets/); Android APK from [GitHub releases](https://github.com/ecash-com/ecash-wallet-mobile/releases/latest) |
+| BitWindow (desktop; also the activation client) | build 0.2.268 (2026-11-05; Windows 0.2.263) includes the eCash mainnet network. https://ecash.com/download |
+| Edge, EcashJr Wallet | Listed on [ecash.com/wallets](https://ecash.com/wallets/) with coin splitting: Edge (mobile, ECX support from 4.52.2) and EcashJr (desktop, early release with specific recovery-phrase requirements). Third-party software; read the notes there first. The same page notes that Tria has announced ECX balance, history and receiving support, with sending dependent on its own readiness |
 | Other Bitcoin wallets (Sparrow, Electrum, hardware wallets) | Formats are compatible, but they need to connect to an eCash server and must set the replay marker. Compatibility alone is not support ([ecash.com/split](https://ecash.com/split/)) |

@@ -30,7 +30,7 @@ Alphanet and betanet used `499999999` (`LOCKTIME_THRESHOLD - 1`). On mainnet tha
 
 ### Implementation
 
-Reference commit on mainnet `master`: [`b9df0c5` "Add replay protection via magic nLockTime"](https://github.com/ecash-com/bitcoin/commit/b9df0c5fe1edc0f1ed37c96ee032c2c595136a9c). It makes two one-line consensus changes:
+Reference commit on mainnet `master` (tag `ecash-v1.2.0-core32.1`): [`68af206` "Add replay protection via magic nLockTime"](https://github.com/ecash-com/bitcoin/commit/68af20699bc02a2b703f08c6fb348ac2be591c8d). It makes two one-line consensus changes:
 
 - `IsFinalTx` in `src/consensus/tx_verify.cpp` short-circuits to final when `tx.nLockTime == LOCKTIME_THRESHOLD - 2`, alongside the existing `nLockTime == 0` case.
 - `CheckLockTime` in `src/script/interpreter.cpp` adds the matching CLTV exclusion.
@@ -38,7 +38,7 @@ Reference commit on mainnet `master`: [`b9df0c5` "Add replay protection via magi
 `master` ships no functional test for it; the betanet branch's `feature_replay_protection.py` tests the betanet value. Test the mainnet value on regtest with the mainnet binary. The check is network-independent, so `-regtest` enforces `499999998` too:
 
 ```sh
-bitcoind -regtest -datadir=./rt -daemon                 # eCash mainnet binary (v1.1.0)
+bitcoind -regtest -datadir=./rt -daemon                 # eCash mainnet binary (v1.2.0)
 # fund a wallet, then build a tx with nLockTime=499999998 and one input nSequence=0xfffffffd
 bitcoin-cli -regtest -datadir=./rt testmempoolaccept '["<hex>"]'
 # eCash: "allowed": true      stock Bitcoin Core regtest: "allowed": false, "reject-reason": "non-final"
@@ -46,10 +46,10 @@ bitcoin-cli -regtest -datadir=./rt testmempoolaccept '["<hex>"]'
 
 ## How to split coins (exchange procedure)
 
-1. **Snapshot and freeze.** Record every balance and UTXO as of block **973,727**, the last block shared with Bitcoin. Freeze BTC (and ECX) withdrawals shortly before block 973,728. Key the freeze on height, not clock time.
+1. **Snapshot and freeze.** Record every balance and UTXO as of block **973,727**, the last block shared with Bitcoin (mined 2026-10-29). The fork has happened: if you have not split yet, freeze withdrawals that would spend pre-fork UTXOs until the steps below are done.
 2. **Do not move pre-fork BTC UTXOs** until the eCash side is split. Order matters.
 3. **Split on the eCash side first:** sweep every pre-fork UTXO you control into fresh addresses (ideally from a new eCash-dedicated seed) with `nLockTime = 499999998` and a non-final input sequence. These sweeps confirm only on eCash and cannot touch your BTC.
-4. **Wait for deep confirmation on eCash.** The post-fork period has a reset difficulty and elevated reorg risk; a reorg past your split transactions would re-expose you to replay. Count confirmations in blocks, and remember that blocks may arrive much faster than every 10 minutes at first ([01](01-node-setup.md#difficulty-after-the-fork)).
+4. **Wait for deep confirmation on eCash.** The post-fork period has a reset difficulty and elevated reorg risk; a reorg past your split transactions would re-expose you to replay. Count confirmations in blocks, and remember that blocks can arrive much faster than every 10 minutes ([01](01-node-setup.md#difficulty-after-the-fork)).
 5. **Check both chains.** Each split transaction should be confirmed on eCash, and the corresponding BTC still unspent on Bitcoin.
 6. **Resume BTC operations for verified split UTXOs:** those outputs are already spent on eCash, so a Bitcoin transaction spending them has nothing to replay against, unless a reorg reverses the split. Do not assume omitted or newly received UTXOs are also separated.
 7. **Keep setting the magic `nLockTime` on all future ECX transactions.** After the split it is redundant for your own coins, but it guards against any unsplit UTXO that later lands in your wallets (e.g. a customer depositing pre-fork coins that were never split).
@@ -68,7 +68,7 @@ Never enter a recovery phrase on a website or import production BTC keys into a 
 
 ## Rehearsing
 
-Mainnet does not exist before block 973,728, so there is no pre-fork mainnet window. Options:
+Rehearse on a test setup before moving real coins on mainnet. Options:
 
 - **Regtest with the mainnet binary** (above): exercises the exact mainnet marker. Use isolated test keys and make the same test UTXO available on both regtest nodes before comparing `testmempoolaccept`; a missing-input rejection does not prove replay protection.
-- **Betanet** ([testnets/betanet.md](testnets/betanet.md)): a live fork for end-to-end drills, but with marker `499999999`. Use dedicated test funds and keys, not production BTC keys. Switch the constant before promoting the drill to mainnet.
+- **Betanet** ([testnets/betanet.md](testnets/betanet.md)): a rehearsal fork with marker `499999999`. Its public explorer and Esplora did not respond on 2026-11-13, so check that it is reachable first. Use dedicated test funds and keys, not production BTC keys. Switch the constant before promoting the drill to mainnet.
