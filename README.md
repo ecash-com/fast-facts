@@ -1,8 +1,8 @@
 # eCash (ECX) Integration Guide
 
-Last updated: **2026-10-27**, before the mainnet fork (Bitcoin tip 973,441, 287 blocks to go). This guide covers **mainnet**. Alphanet and betanet are covered in [testnets/](testnets/README.md).
+Last updated: **2026-11-13**. Mainnet is live: it forked on 2026-10-29 and was at block 984,268 when this guide was checked. This guide covers **mainnet**. Alphanet and betanet are covered in [testnets/](testnets/README.md).
 
-eCash mainnet forks Bitcoin at block **973,728**, Bitcoin's next difficulty adjustment. The fork is set by height, not by date. As of 2026-10-27, mempool.space puts it at about **2026-10-29 15:00 UTC**; the earlier announced target was 2026-10-31. Live ETA: https://mempool.space/api/v1/difficulty-adjustment.
+eCash mainnet forked from Bitcoin at block **973,728**, a Bitcoin difficulty-adjustment height, on **2026-10-29 18:59:55 UTC**. The fork block's hash is `0000000000000001441a6a4ae49d679d4a30581db3e3eaeeb2fba5da6dc146ed`.
 
 ## Holder quick links
 
@@ -22,18 +22,18 @@ There is no pre-claim registration. Never enter a seed phrase on a website. A be
 |---|---|
 | Asset | eCash, ticker **ECX**, 8 decimals. Not XEC (e.cash), and not a Solana token ([FAQ](07-faq.md#ecx-xec-wecx-and-solana-tokens)) |
 | What it is | Hard fork of Bitcoin by LayerTwo Labs that activates drivechains (BIP300/301). Every address holding BTC at block 973,727 has the same amount of ECX on the new chain. BTC is untouched |
-| Fork | Blocks 0 to **973,727** are shared with Bitcoin. **973,728** is the first block mined by eCash miners, so its hash is known only after it is mined |
-| Node software | **`ecash-v1.1.0-core31.1`**, a fork of Bitcoin Core v31.1 (`master` of [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin)). Binaries at [releases.ecash.com](https://releases.ecash.com/L1-ecash-bitcoin/mainnet/latest/release.json), Docker `ghcr.io/ecash-com/bitcoin:latest`. **v1.0.0 nodes split off the chain at block 974,016: upgrade them** |
-| Consensus | SHA-256d PoW. Difficulty resets to ~2.6e9 at the fork, then retargets **every 288 blocks** with a dampened rule ([details](01-node-setup.md#difficulty-after-the-fork)) |
+| Fork | Blocks 0 to **973,727** are shared with Bitcoin. **973,728** is the first block mined by eCash miners (2026-10-29), hash `0000000000000001441a6a4ae49d679d4a30581db3e3eaeeb2fba5da6dc146ed` |
+| Node software | **`ecash-v1.2.0-core32.1`**, a fork of Bitcoin Core v32.1 (`master` of [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin)). Binaries at [releases.ecash.com](https://releases.ecash.com/L1-ecash-bitcoin/mainnet/latest/release.json), Docker `ghcr.io/ecash-com/bitcoin:latest`. v1.1.0 is the minimum: **v1.0.0 nodes split off the chain at block 974,016** |
+| Consensus | SHA-256d PoW. Difficulty reset to ~2.6e9 at the fork and retargets **every 288 blocks** with a dampened rule; it was ~8.0e10 on 2026-11-13 ([details](01-node-setup.md#difficulty-after-the-fork)) |
 | Address/key formats | Identical to Bitcoin (`1...`/`3...`/`bc1q...`/`bc1p...`, same WIF/xpub/xprv, coin type `0'`) |
 | Network identity | Magic `0xeca5dcb7`, ports **8533/8532**, datadir `~/.ecash`, `ecash.conf`. Cannot peer with Bitcoin Core. `getblockchaininfo` still reports `chain=main` |
-| Seed nodes | `seed.ecash.ninja`, `seed.bip300.xyz`, `seed.ecash.drivecha.in`, `seed.ecash.zuexeuz.net`, `seed.ecash.eu.com`, all on port 8533. Only the first and fourth resolve as of 2026-10-27 |
+| Seed nodes | `seed.ecash.ninja`, `seed.bip300.xyz`, `seed.ecash.drivecha.in`, `seed.ecash.zuexeuz.net`, `seed.ecash.eu.com`, all on port 8533. All five resolve as of 2026-11-13 |
 | Replay protection | Opt-in: **`nLockTime = 499999998`** plus at least one input with `nSequence < 0xffffffff`. Betanet's `499999999` does not work on mainnet ([details](03-replay-protection-and-coin-splitting.md)) |
 | Consensus quirk | 232 whitelisted "repurpose" transactions move Satoshi-era (Patoshi) coins without signatures |
-| Public endpoints | Explorer https://explorer.ecash.ninja, Esplora https://esplora.ecash.ninja, Electrum `ssl://explorer.ecash.ninja:50002`, Blockbook https://blockbook.ecash.ninja. All are live and follow the shared chain until the fork ([04](04-explorers-and-apis.md)) |
+| Public endpoints | Explorer https://explorer.ecash.ninja, Esplora https://esplora.ecash.ninja, Electrum `ssl://fulcrum.ecash.ninja:50002`, Blockbook https://blockbook.ecash.ninja. All are live, with `*.ecash.com` mirrors ([04](04-explorers-and-apis.md)) |
 | Fast bootstrap | assumeutxo snapshot at height 965,000, pinned in the node ([01](01-node-setup.md#bootstrapping-assumeutxo)) |
-| Mining | Any SHA-256d miner. No public mainnet pool has been announced yet ([08](08-mining.md)) |
-| Sidechains | None is active at the fork. Each slot must be proposed and activated by miners ([05](05-sidechains-and-l2s.md)) |
+| Mining | Any SHA-256d miner. Six pools are in the mainnet registry, four with a public stratum ([08](08-mining.md)) |
+| Sidechains | Five slots were activated by 2026-11-12; Thunder (slot 9) and Flush (slot 46) show recorded activity. Each slot must be proposed and activated by miners ([05](05-sidechains-and-l2s.md)) |
 | Dev contact | dev@layertwolabs.com, [t.me/DcInsiders](https://t.me/DcInsiders) |
 
 ## Docs
@@ -52,17 +52,17 @@ There is no pre-claim registration. Never enter a seed phrase on a website. A be
 
 ## Integration checklist
 
-1. Run `ecash-v1.1.0-core31.1` (or later) with its own datadir, bootstrapped from the 965,000 snapshot. Make sure it is running v1.1.0 before block 974,016.
+1. Run `ecash-v1.2.0-core32.1` with its own datadir, bootstrapped from the 965,000 snapshot. Anything older than v1.1.0 is off the chain.
 2. Reuse your Bitcoin pipeline (RPC, ZMQ, descriptors, electrs/mempool.space) pointed at the eCash node. Key balances by `(chain, address)`.
 3. Set **`nLockTime = 499999998`** on every ECX transaction, with at least one input **`nSequence < 0xffffffff`**. Verify both fields in the signed transaction. If you tested on betanet, change the locktime constant.
-4. Fork window: snapshot balances at block 973,727 and freeze withdrawals by height. Split coins on the eCash side first, then resume with deep confirmation requirements while difficulty re-equilibrates.
+4. Reconstruct balances as of block 973,727. Split pre-fork coins on the eCash side first, and until then do not fund BTC withdrawals from unsplit pre-fork UTXOs. Use deep confirmation requirements while difficulty re-equilibrates.
 5. Decide your crediting policy for customer BTC held at block 973,727, and publish it. Distinguish distribution, trading, deposits and withdrawals. Explain the Satoshi-coin reassignment and the differences between native ECX, wrapped wECX and the unrelated XEC ([markets guide](10-markets-and-exchange-support.md)).
-6. Verify the fork block's hash against the explorer once it is mined, and alert on any tip mismatch.
+6. Verify that your node's block 973,728 is `0000000000000001441a6a4ae49d679d4a30581db3e3eaeeb2fba5da6dc146ed`, and alert on any tip mismatch with the explorer.
 
 ## Primary sources
 
 - [ecash.com](https://ecash.com): official site (fork height, [coin splitting](https://ecash.com/split/), [FAQ](https://ecash.com/faq/), [downloads](https://ecash.com/download/))
-- [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin) `master` / tag `ecash-v1.1.0-core31.1`: consensus parameters in `src/kernel/chainparams.cpp`
+- [github.com/ecash-com/bitcoin](https://github.com/ecash-com/bitcoin) `master` / tag `ecash-v1.2.0-core32.1`: consensus parameters in `src/kernel/chainparams.cpp`
 - [drivechain.dev/config](https://drivechain.dev/config): machine-readable network registry (backends, seeds, snapshot) used by the official wallets. The mainnet entry has id `ecash`
 - [releases.ecash.com/index.json](https://releases.ecash.com/index.json): node builds per network, with SHA-256s
 - [LayerTwo-Labs/mining-pools](https://github.com/LayerTwo-Labs/mining-pools) (rendered at [pool.drivechain.info](https://pool.drivechain.info)): pool registry
@@ -72,6 +72,5 @@ There is no pre-claim registration. Never enter a seed phrase on a website. A be
 
 - [Telegram, official announcements](https://t.me/ecashcom_official)
 - [Telegram, eCash Hangout](https://t.me/eCashHangout)
-- [Discord](https://discord.gg/swyE78UPw)
 
 Feedback Appreciated!

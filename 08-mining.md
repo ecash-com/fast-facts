@@ -5,28 +5,32 @@
 | | |
 |---|---|
 | Algorithm | **SHA-256d**, identical to Bitcoin. Any Bitcoin miner works unmodified: ASICs and home miners (Bitaxe, NerdAxe). The fork difficulty (~2.6e9) rules out CPU mining |
-| Network | **mainnet**: the first eCash block is **973,728**, built on Bitcoin's block 973,727. The fork block must carry `nBits = 0x1901a6e1` (difficulty ~2.6e9, i.e. 10-minute blocks at ~18.6 PH/s) |
-| Difficulty after the fork | retarget **every 288 blocks**, `new = old × (6T + measured) / 7T`. At most ~12% harder or ~30% easier per retarget. First retarget at **974,016**. Needs node **v1.1.0** ([01](01-node-setup.md#difficulty-after-the-fork)) |
+| Network | **mainnet**, live since 2026-10-29. The first eCash block was **973,728**, built on Bitcoin's block 973,727 with `nBits = 0x1901a6e1` (difficulty ~2.6e9). On 2026-11-13 the tip was 984,268 and difficulty ~8.0e10 (10-minute blocks at ~0.57 EH/s) |
+| Difficulty after the fork | retarget **every 288 blocks**, `new = old × (6T + measured) / 7T`. At most ~12% harder or ~30% easier per retarget. First retarget was at **974,016**. Needs node **v1.1.0** or later; current is **v1.2.0** ([01](01-node-setup.md#difficulty-after-the-fork)) |
 | Block reward | 3.125 ECX + fees; spendable after 100 confirmations (standard coinbase maturity) |
-| Public pools | **none announced for mainnet as of 2026-10-27** ([below](#pools)) |
-| Solo mining | point a `getblocktemplate` miner at the **enforcer's** template server, never at the node directly. The enforcer's mainnet support is not merged yet ([below](#solo-mining)) |
-| Live stats | https://explorer.ecash.ninja/mining (after the fork) |
+| Public pools | six in the mainnet registry as of 2026-11-13, four with a public stratum ([below](#pools)) |
+| Solo mining | point a `getblocktemplate` miner at the **enforcer's** template server, never at the node directly. Needs enforcer **v1.0.0 or later** (current v1.0.1) ([below](#solo-mining)) |
+| Live stats | https://explorer.ecash.ninja/mining |
 | Test networks | betanet pool and enforcer preset: [testnets/betanet.md](testnets/betanet.md#mining-on-betanet) |
 
-**What the 288-block rule means for miners:** if far more than ~18.6 PH/s points at eCash right after the fork, blocks come in seconds rather than minutes. Difficulty then climbs by at most ~12% every 288 blocks, so a large surplus of hashrate takes many windows to absorb. Expect frequent stale blocks and reorgs during that period. In the other direction, if hashrate leaves, difficulty falls by at most ~30% per window, and each window still needs 288 blocks.
+**What the 288-block rule means for miners:** difficulty climbs by at most ~12% every 288 blocks, so a surplus of hashrate takes many windows to absorb. That is what happened after the fork: the first 5,760 blocks took under 8 hours, and difficulty went from 2.6e9 to ~8.9e10 by 2026-11-04. In the other direction, if hashrate leaves, difficulty falls by at most ~30% per window, and each window still needs 288 blocks: the window ending at 983,232 took about five days. Expect stale blocks and reorgs when blocks are fast, and long gaps when hashrate drops.
 
 ## Pools
 
-The pool list lives in [`LayerTwo-Labs/mining-pools`](https://github.com/LayerTwo-Labs/mining-pools) (`networks/mainnet/pools.json`), rendered at [pool.drivechain.info](https://pool.drivechain.info). The explorer uses the same list to attribute blocks by `coinbase_tag`. As of 2026-10-27:
+The pool list lives in [`LayerTwo-Labs/mining-pools`](https://github.com/LayerTwo-Labs/mining-pools) (`networks/mainnet/pools.json`), rendered at [pool.drivechain.info](https://pool.drivechain.info). The explorer uses the same list to attribute blocks by `coinbase_tag`. As of 2026-11-13 (registry file updated 2026-11-03):
 
-| Pool | Mainnet status |
-|---|---|
-| FreeBank | listed: private solo mining by the FreeBank sidechain operator, no public stratum |
-| eCPool.tech | listing PR [#29](https://github.com/LayerTwo-Labs/mining-pools/pull/29) open |
-| Pow.re | listing PR [#27](https://github.com/LayerTwo-Labs/mining-pools/pull/27) open (DATUM) |
-| bip300.xyz (LayerTwo Labs) | runs the betanet pool (`pool.beta.bip300.xyz`). No mainnet hostname announced; `pool.bip300.xyz` does not resolve |
+| Pool | Mode, fee | Stratum | Notes |
+|---|---|---|---|
+| eCPool.tech | proportional, 1% | `stratum+tcp://mine.ecpool.tech:3334` | username is your address; the coinbase pays the PPLNS window directly. Port 3336 is solo |
+| bip300.xyz | solo, 0.1% | `stratum+tcp://pool.bip300.xyz:3334` | username is your address; 3335 (Braiins) and 3336 (NiceHash) for rented hashrate |
+| avonpool | pplns-thunder, 0.01% | `stratum+tcp://pool.avonpool.xyz:3334` | username is a **Thunder** address; balances settle on the Thunder sidechain |
+| supapool | solo, 1% | `stratum+tcp://ecx.stratum.supapool.xyz:3383` (TLS 3384) | ckpool; username is your ECX address |
+| Pow.re | solo, 0% | none | Pow.re's own fleet only (DATUM) |
+| FreeBank | solo, 0% | none | private solo mining by the FreeBank sidechain operator |
 
-The registry's lifecycle file lists mainnet's launch as 2026-10-31, and the `ecash` entry in [drivechain.dev/config](https://drivechain.dev/config) has no `mining_pool` yet. To list a pool, open a PR that appends to `networks/mainnet/pools.json` (with `"chain": "mainnet"` and a unique `coinbase_tag`) and run `tools/build.py`.
+Open listing PRs on 2026-11-13: SegPool ECX ([#32](https://github.com/LayerTwo-Labs/mining-pools/pull/32)), MergedHash ([#33](https://github.com/LayerTwo-Labs/mining-pools/pull/33)), eCashPool.io ([#35](https://github.com/LayerTwo-Labs/mining-pools/pull/35)). Over the week to 2026-11-13 the explorer attributed 615 of 1,090 blocks to eCPool.tech, 20 to Pow.re and 16 to bip300.xyz; 439 were untagged. A listing is not an endorsement; check a pool's terms and its share of blocks yourself.
+
+The `ecash` entry in [drivechain.dev/config](https://drivechain.dev/config) still has no `mining_pool`. To list a pool, open a PR that appends to `networks/mainnet/pools.json` (with `"chain": "mainnet"` and a unique `coinbase_tag`) and run `tools/build.py`.
 
 How the pools pay: the username is normally an **L1 Bitcoin-format address** (`<address>.<rig>`, any password). In `solo` and `pplns-coinbase` modes the block's own coinbase pays miners directly, so the pool never custodies funds. Check each pool's `mode` in the registry.
 
@@ -36,11 +40,11 @@ How the pools pay: the username is normally an **L1 Bitcoin-format address** (`<
 
 So the solo stack is: **eCash node → `bip300301_enforcer` (template server) → your GBT miner or stratum pool.**
 
-> **Mainnet enforcer status (2026-10-27):** enforcer `master` has presets only for alphanet and betanet. Mainnet parameters (magic `eca5dcb7`, activation height 973,728, `OP_NOP8`, mainnet thresholds, replay `nLockTime` on wallet sends) are in open [PR #666](https://github.com/LayerTwo-Labs/bip300301_enforcer/pull/666), which replaces `--network-preset` with `--fork ecash`. **Do not run a preset-less enforcer against a mainnet node**: it would assume `OP_NOP5`, Bitcoin's magic and activation height 0. Watch the PR and the DcInsiders Telegram for the release. The commands below use the PR's flag.
+> **Mainnet enforcer status (2026-11-13):** mainnet support shipped. [PR #666](https://github.com/LayerTwo-Labs/bip300301_enforcer/pull/666) was merged on 2026-10-27 and released in **v1.0.0**; the current release is **v1.0.1** (2026-10-29), which supports Bitcoin Core majors 30 to 32 and so works with node v1.2.0. `--network-preset` is gone. The enforcer detects eCash from the node's user agent (`/eCash…`) or takes `--fork ecash`, and then applies `OP_NOP8`, activation height 973,728 and replay `nLockTime` `499999998` on its wallet sends. Binaries: `bip300301-enforcer/stable` in [releases.ecash.com/index.json](https://releases.ecash.com/index.json). **Do not run a pre-1.0 enforcer against a mainnet node**: without eCash parameters it assumes `OP_NOP5` and activation height 0.
 
 ### 1. Run the node
 
-A synced, **unpruned** mainnet node running `ecash-v1.1.0-core31.1` with RPC and ZMQ enabled. The enforcer refuses pruned nodes; assumeutxo-bootstrapped nodes are fine. Setup: [01-node-setup.md](01-node-setup.md).
+A synced, **unpruned** mainnet node running `ecash-v1.2.0-core32.1` with RPC and ZMQ enabled. The enforcer refuses pruned nodes; assumeutxo-bootstrapped nodes are fine. Setup: [01-node-setup.md](01-node-setup.md).
 
 ```ini
 # ecash-mainnet/ecash.conf
@@ -56,7 +60,7 @@ bitcoind -datadir=./ecash-mainnet
 bitcoin-cli -datadir=./ecash-mainnet getblockchaininfo   # headers/blocks at the tip, not in IBD
 ```
 
-`getblocktemplate` requires a connected, fully synced node. Before the fork, the "tip" is Bitcoin's; the first template you can usefully mine on eCash is for block 973,728.
+`getblocktemplate` requires a connected, fully synced node.
 
 ### 2. Choose a payout address
 
@@ -67,7 +71,7 @@ bitcoin-cli -datadir=./ecash-mainnet createwallet mine
 bitcoin-cli -datadir=./ecash-mainnet getnewaddress
 ```
 
-### 3. Run the enforcer (once mainnet support ships)
+### 3. Run the enforcer (v1.0.1)
 
 ```sh
 bip300301_enforcer \
@@ -79,11 +83,11 @@ bip300301_enforcer \
   --enable-mempool        # with the wallet enabled, serves getblocktemplate
 ```
 
-It serves `getblocktemplate` on `127.0.0.1:8122` by default (`--serve-rpc-addr`), with no authentication. `--gbt-cache-lifetime-s` controls template caching. Without a wallet, use `--enable-block-template-server --enable-mempool --coinbase-recipient=<address>` instead of `--enable-wallet`. Sanity check:
+`--fork=ecash` is optional when the node is an eCash build, because the fork is detected from its user agent. The enforcer serves `getblocktemplate` on `127.0.0.1:8122` by default (`--serve-rpc-addr`), with no authentication. `--gbt-cache-lifetime-s` controls template caching. Without a wallet, use `--enable-block-template-server --enable-mempool --coinbase-recipient=<address>` instead of `--enable-wallet`. Sanity check:
 
 ```sh
 curl -s --data '{"method":"getblocktemplate","params":[{"rules":["segwit"]}]}' http://127.0.0.1:8122
-# after the fork, "height" should be >= 973728 and "bits" at the fork block "1901a6e1"
+# "height" should be the node's tip + 1 (above 984,000 in November 2026)
 ```
 
 ### 4. Point a miner at the enforcer
@@ -157,9 +161,9 @@ simplepool ships five, selected by `pool_mode`:
 | `pplns-coinbase` | the whole PPLNS window, directly | Bitcoin address | the miners |
 
 - **`solo`**: the coinbase pays the finding miner directly, minus `fee_bps` to `operator_address`. No off-chain accounting. The simplest choice.
-- **`pps-classic`**: miners authorize with a bare base58 Thunder address and accrue `pps_credits` per share. The operator batches L1 funds into Thunder, and a payout worker settles on the sidechain. Requires an active Thunder sidechain on mainnet, which does not exist at the fork ([05](05-sidechains-and-l2s.md)).
+- **`pps-classic`**: miners authorize with a bare base58 Thunder address and accrue `pps_credits` per share. The operator batches L1 funds into Thunder, and a payout worker settles on the sidechain. Requires the Thunder sidechain, which was activated on mainnet in slot 9 at block 978,324 ([05](05-sidechains-and-l2s.md)).
 - **`pplns-thunder`** / **`pplns-btc`**: the coinbase pays the pool, and a matured block is split across the shares in the window (`pplns_window_diff_multiple` × network difficulty), so the pool never owes more than it has just been paid. Fees are included in the split. Paid over Thunder or in BTC-format L1 coins respectively.
-- **`pplns-coinbase`**: what the LayerTwo Labs betanet pool runs. Same PPLNS accounting, but the block's own coinbase pays every miner in the window, so the pool holds nothing. Miners below 546 sats, or beyond the coinbase's output slots, roll to the front of the next block's queue.
+- **`pplns-coinbase`**: what the LayerTwo Labs betanet pool ran. Same PPLNS accounting, but the block's own coinbase pays every miner in the window, so the pool holds nothing. Miners below 546 sats, or beyond the coinbase's output slots, roll to the front of the next block's queue.
 - An earlier `pps` mode that paid a BIP300 deposit output in the coinbase has been dropped; the enforcer does not credit coinbase-source deposits.
 
 ### Deployment
